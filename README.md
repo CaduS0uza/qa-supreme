@@ -296,6 +296,10 @@ QA Supreme stands on work published by others, and says so:
 Everything in `skills/` and `runner/` is original text and code written for this repository.
 Where a concept is borrowed, the source is named above rather than absorbed silently.
 
+## Author
+
+Built by **Carlos Eduardo** ([@CaduS0uza](https://github.com/CaduS0uza)).
+
 ## Contributing
 
 New skills, new stages, better heuristics — all welcome. `CONTRIBUTING.md` has the bar every
@@ -303,4 +307,4 @@ skill must clear (it is short, and CI enforces most of it).
 
 ## License
 
-MIT © QA Supreme contributors
+MIT © [Carlos Eduardo](https://github.com/CaduS0uza)

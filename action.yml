@@ -1,6 +1,6 @@
 name: 'QA Supreme'
 description: 'Autonomously click every control of a web app and gate the build on the evidence: smoke, crawl, forms, console, a11y, perf, visual, security.'
-author: 'QA Supreme contributors'
+author: 'Carlos Eduardo (@CaduS0uza)'
 branding:
   icon: 'check-circle'
   color: 'blue'

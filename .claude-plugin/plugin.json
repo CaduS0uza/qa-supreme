@@ -3,11 +3,20 @@
   "version": "1.0.0",
   "description": "Risk-first, evidence-enforced QA pipeline: 17 testing skills plus an orchestrator agent that refuses to call anything green without proof.",
   "author": {
-    "name": "QA Supreme contributors",
-    "url": "https://github.com/CaduS0uza/qa-supreme"
+    "name": "Carlos Eduardo",
+    "url": "https://github.com/CaduS0uza"
   },
   "homepage": "https://github.com/CaduS0uza/qa-supreme",
   "repository": "https://github.com/CaduS0uza/qa-supreme",
   "license": "MIT",
-  "keywords": ["qa", "testing", "playwright", "e2e", "mutation-testing", "flaky-tests", "accessibility", "quality-gate"]
+  "keywords": [
+    "qa",
+    "testing",
+    "playwright",
+    "e2e",
+    "mutation-testing",
+    "flaky-tests",
+    "accessibility",
+    "quality-gate"
+  ]
 }
