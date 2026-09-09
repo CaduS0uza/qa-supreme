@@ -9,7 +9,7 @@ and an autonomous runner that clicks every button in your app and counts each on
 [![validate](https://github.com/CaduS0uza/qa-supreme/actions/workflows/validate.yml/badge.svg)](https://github.com/CaduS0uza/qa-supreme/actions/workflows/validate.yml)
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![skills](https://img.shields.io/badge/skills-29-blue.svg)](#the-skills)
-[![action](https://img.shields.io/badge/GitHub%20Action-ready-2088FF.svg)](#use-it-in-ci-one-step)
+[![action](https://github.com/CaduS0uza/qa-supreme/actions/workflows/example-action.yml/badge.svg)](#use-it-in-ci-one-step)
 [![agents](https://img.shields.io/badge/works%20with-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20Gemini%20CLI-8b5cf6.svg)](#install)
 
 </div>
