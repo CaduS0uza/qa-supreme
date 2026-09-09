@@ -154,7 +154,12 @@ export async function crawl(session, cfg) {
             opened = `state:${after.hash}`
             // A modal/drawer/tab-panel: its contents are reachable UI too.
             const sub = await page.evaluate(DISCOVER)
-            const fresh = sub.filter(s => !elements.some(e => e.key === s.key))
+            // Identity is the element, not its label. A button that rewrites itself
+            // ("Add to cart" -> "Added ✓") is the same control in a new state, not a new
+            // control to click again — counting it twice inflates the click total and makes
+            // the crawl non-deterministic across machines.
+            const known = new Set(elements.map(e => e.selector))
+            const fresh = sub.filter(s => !known.has(s.selector) && !elements.some(e => e.key === s.key))
             if (fresh.length) {
               log.liveDone()
               log.step(`+${fresh.length} new controls revealed by "${(el.name || el.selector).slice(0, 32)}"`)
