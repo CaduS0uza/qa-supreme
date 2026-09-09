@@ -51,9 +51,10 @@ export async function crawl(session, cfg) {
     graph.nodes.push({ id: nodeId, url: node.url, title, depth: node.depth, interactive: elements.length })
     log.info(`${log.c(log.C.bold, nodeId)} ${node.url}  ${log.c(log.C.dim, `(${elements.length} interactive, depth ${node.depth})`)}`)
 
-    const budget = Math.min(elements.length, cfg.maxClicksPerPage)
+    // Bound re-evaluated every iteration: controls revealed mid-crawl (modal contents, tab
+    // panels) are appended to `elements` and must be clicked too, up to the per-page budget.
     let dirty = false
-    for (let i = 0; i < budget && total < cfg.maxTotalClicks; i++) {
+    for (let i = 0; i < Math.min(elements.length, cfg.maxClicksPerPage) && total < cfg.maxTotalClicks; i++) {
       const el = elements[i]
 
       if (isDangerous(el, cfg)) {
@@ -66,12 +67,25 @@ export async function crawl(session, cfg) {
       // or opened a modal that makes the rest of the page inert (every later click would then
       // time out — 15s each, which is how a crawl silently turns into a 3-minute crawl).
       try {
-        if (norm(page.url()) !== node.url || dirty) {
+        if (norm(page.url()) !== node.url || dirty || el.revealedBy) {
           await page.goto(node.url, { waitUntil: 'domcontentloaded', timeout: cfg.timeoutMs })
           await page.waitForTimeout(120)
           dirty = false
         }
       } catch { break }
+
+      // Nested control: replay the click that reveals it before addressing it. Without this
+      // the element is discovered, reported, and never actually tested.
+      if (el.revealedBy) {
+        try {
+          const opener = page.locator(el.revealedBy).first()
+          if (await opener.isVisible({ timeout: 1200 }).catch(() => false)) {
+            await opener.click({ timeout: cfg.clickTimeoutMs })
+            await page.waitForTimeout(200)
+            dirty = true
+          }
+        } catch { /* opener gone: the element check below records it as unreachable */ }
+      }
 
       const locator = page.locator(el.selector).first()
       const before = { url: norm(page.url()), hash: await page.evaluate(STATE_HASH).catch(() => '') }
@@ -128,7 +142,8 @@ export async function crawl(session, cfg) {
             if (fresh.length) {
               log.liveDone()
               log.step(`+${fresh.length} new controls revealed by "${(el.name || el.selector).slice(0, 32)}"`)
-              for (const f of fresh.slice(0, Math.max(0, cfg.maxClicksPerPage - budget))) elements.push(f)
+              const room = Math.max(0, cfg.maxClicksPerPage - elements.length)
+              for (const f of fresh.slice(0, room)) elements.push({ ...f, revealedBy: el.selector })
             }
             await page.keyboard.press('Escape').catch(() => {})
           }

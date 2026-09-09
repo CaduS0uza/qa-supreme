@@ -17,7 +17,7 @@ export function writeReport(run, cfg) {
 
   const clicksRows = (S.crawl?.data?.clicks || []).map(c => `
     <tr><td>${c.n}</td><td>${esc(c.node)}</td><td>${esc(c.role)}</td><td>${esc(c.name)}</td>
-    <td class="o-${c.outcome}">${esc(c.outcome)}</td><td class="muted">${esc(c.opened || '')}</td></tr>`).join('')
+    <td class="o-${esc(c.outcome).replace(/[^a-z-]/g, '')}">${esc(c.outcome)}</td><td class="muted">${esc(c.opened || '')}</td></tr>`).join('')
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">

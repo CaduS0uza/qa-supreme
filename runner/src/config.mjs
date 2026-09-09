@@ -45,6 +45,13 @@ export function loadConfig(cliArgs = {}) {
   cfg.visual = { ...DEFAULTS.visual, ...(fileCfg.visual || {}) }
   if (cliArgs.fullSend) cfg.denyText = []
   if (!cfg.url) throw new Error('No target URL. Pass --url <url> or set "url" in qa-supreme.config.json')
+  for (const k of ['maxDepth', 'maxPages', 'maxClicksPerPage', 'maxTotalClicks', 'timeoutMs', 'clickTimeoutMs']) {
+    const v = Number(cfg[k])
+    if (!Number.isFinite(v) || v < 1) throw new Error(`${k} must be a positive number (got ${cfg[k]})`)
+    cfg[k] = v
+  }
+  const unknown = cfg.stages.filter(s => !['smoke','crawl','forms','console','a11y','perf','visual','security'].includes(s))
+  if (unknown.length) throw new Error(`unknown stage(s): ${unknown.join(', ')}`)
   cfg.outDir = path.resolve(process.cwd(), cfg.out)
   return cfg
 }
