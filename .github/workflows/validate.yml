@@ -27,9 +27,14 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Install browser
         working-directory: runner
-        run: npx playwright install --with-deps chromium
+        # --with-deps runs apt-get update, which fails on transient mirror hash mismatches.
+        # ubuntu-latest already carries the shared libraries, so fall back to the plain install.
+        run: npx playwright install --with-deps chromium || npx playwright install chromium
       - name: Serve the demo fixture
-        run: python3 -m http.server 8099 --directory examples/demo-app &
+        run: |
+          python3 -m http.server 8099 --directory examples/demo-app &
+          for i in $(seq 1 20); do curl -sf http://localhost:8099/index.html >/dev/null && break; sleep 0.5; done
+          curl -sf -o /dev/null -w 'fixture HTTP %{http_code}\n' http://localhost:8099/index.html
       - name: Run the full pipeline against the fixture
         working-directory: runner
         run: node bin/qa-supreme.mjs run --url http://localhost:8099/index.html --out ../.qa-out || true
