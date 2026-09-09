@@ -70,6 +70,20 @@ turning one CI run into four.
 
 ## Autonomous exploration in CI
 
+The published action is the one-line form:
+
+```yaml
+      - uses: CaduS0uza/qa-supreme@v1
+        with:
+          url: http://localhost:3000
+          user: qa@example.com
+          password: ${{ secrets.QA_PASSWORD }}
+          fail-on: no-ship          # or `never` while you build trust
+```
+
+It writes a stage table to the job summary, exposes `verdict`, `clicks` and `states` as outputs,
+and uploads the evidence as an artifact. The manual form, if you want to control every step:
+
 ```yaml
   explore:
     needs: smoke

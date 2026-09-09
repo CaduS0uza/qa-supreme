@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { log } from '../logger.mjs'
+import { looksLikeLogin } from '../auth.mjs'
 
 // Stage 1. The build is either alive or it is not. Everything downstream depends on this.
 export async function smoke(session, cfg) {
@@ -35,11 +36,25 @@ export async function smoke(session, cfg) {
   const badReq = session.findings.network.filter(n => n.status >= 500).length
   checks.push({ check: 'no 5xx on load', result: badReq === 0 ? 'PASS' : 'FAIL', detail: `${badReq} response(s)` })
 
+  // An unauthenticated run against a protected app explores the login page and reports an
+  // empty product. Name it instead.
+  const wall = await looksLikeLogin(page)
+  if (wall) {
+    const authed = session.auth?.ok
+    checks.push({
+      check: 'authentication', result: authed ? 'PASS' : 'FAIL',
+      detail: authed ? 'session active but a login form is showing' : 'target is behind a login — pass --user/--pass or --storage'
+    })
+    if (!authed) log.warn('AUTH WALL: everything downstream will only see the login page')
+  } else if (session.auth?.ok) {
+    checks.push({ check: 'authentication', result: 'PASS', detail: session.auth.detail })
+  }
+
   await page.screenshot({ path: path.join(cfg.outDir, 'screenshots', 'smoke.png'), fullPage: true }).catch(() => {})
   log.table(checks)
 
   const failed = checks.filter(c => c.result === 'FAIL')
-  const blocking = failed.some(f => ['reachable', 'renders content'].includes(f.check))
+  const blocking = failed.some(f => ['reachable', 'renders content', 'authentication'].includes(f.check))
   return {
     status: failed.length ? (blocking ? 'fail' : 'warn') : 'pass',
     summary: `${checks.length - failed.length}/${checks.length} checks green · ${loadMs}ms`,

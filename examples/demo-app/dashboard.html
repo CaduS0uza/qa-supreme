@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Dashboard — Demo Shop</title>
+<script>
+// Auth wall: without a session this page never renders, exactly like a real SaaS route.
+if (!localStorage.getItem('demo_session')) location.replace('login.html')
+</script>
+<style>body{font:15px/1.6 system-ui,sans-serif;margin:0;background:#f6f7fb}header{background:#0b1020;color:#fff;padding:16px 24px}
+main{max-width:860px;margin:24px auto;padding:0 20px}.card{background:#fff;border:1px solid #e4e7f2;border-radius:10px;padding:18px;margin:14px 0}
+button{font:inherit;padding:8px 14px;margin:4px 6px 4px 0;border-radius:8px;border:1px solid #c9d2ea;background:#fff;cursor:pointer}
+a{color:#2563eb}</style></head>
+<body><header><b>Dashboard</b> · <a href="index.html" style="color:#cbd5f5">Storefront</a></header>
+<main>
+  <div class="card"><h1>Private area</h1><p>Only reachable with a session — the crawler needs auth to see this.</p>
+    <button id="export">Export report</button>
+    <button id="settings">Open settings</button>
+    <button id="refresh">Refresh data</button>
+    <a href="billing.html">Billing</a>
+  </div>
+  <div class="card" id="panel"></div>
+<script>
+document.getElementById('settings').onclick = () => {
+  document.getElementById('panel').innerHTML = '<h3>Settings</h3><button id="s-notify">Notifications</button><button id="s-team">Team</button>'
+}
+</script>
+</main></body></html>

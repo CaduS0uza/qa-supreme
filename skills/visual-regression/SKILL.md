@@ -52,5 +52,11 @@ data-heavy screens are the classic maintenance sink.
 ## Runner integration
 
 `node runner/bin/qa-supreme.mjs visual --url <url>` stores a baseline per discovered state on
-the first run and flags changes afterwards, with the HUD hidden so instrumentation never
-enters the frame. For per-pixel diff images, use Playwright's assertion above.
+the first run and compares afterwards with **pixelmatch**, writing a `*.diff.png` next to the
+current shot and reporting the exact pixel count. Animations are frozen and the HUD is hidden,
+so instrumentation never enters the frame.
+
+The default threshold is **0.1% of pixels** (`visual.threshold: 0.001`). That is deliberate: a
+changed headline is roughly 0.1%, so the looser bars people copy from byte-comparison tools pass
+real regressions silently. If your app has genuinely noisy regions, mask them rather than
+raising the threshold — a raised threshold hides every small regression, not just the noisy one.

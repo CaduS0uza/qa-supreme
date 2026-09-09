@@ -22,6 +22,30 @@ The on-screen HUD counts every click as it happens, flashes the element being hi
 queue depth and error count — so a human watching, a screenshot, or a recorded video all
 carry the same proof.
 
+## Apps behind a login (most of them)
+
+An unauthenticated run against a protected app explores the login page and reports an empty
+product. The runner names that instead of pretending: smoke fails with `authentication —
+target is behind a login`, and the run stops there rather than producing noise.
+
+```bash
+# log in once, keep the session
+node bin/qa-supreme.mjs login --url https://app.example.com --login-url https://app.example.com/login \
+  --user qa@example.com --pass "$QA_PASSWORD"
+
+# every later run reuses it
+node bin/qa-supreme.mjs run --url https://app.example.com --storage .qa-supreme/auth.json
+```
+
+The login form is found automatically (username/email + password + submit). When the markup
+defeats the heuristics, name the fields: `--user-selector`, `--pass-selector`,
+`--submit-selector`, `--success-selector`. Success is judged by the login form being gone, not
+by a URL change — SPAs authenticate without navigating.
+
+While a session is active the crawler also refuses to click anything that ends it (log out,
+sign out), on top of the destructive-action guard. One stray click on "Sign out" would turn
+every remaining state into the login page.
+
 ## What it produces
 
 | Signal | Meaning | What you do with it |
@@ -31,7 +55,8 @@ carry the same proof.
 | `transitions mapped` | control → destination edges | the app's real navigation graph |
 | `no-op` controls | click produced no observable change | **candidate dead buttons — triage every one** |
 | `click errors` | control refused a click in 4s | overlay traps, disabled-but-visible, z-index bugs |
-| `guarded skips` | destructive controls not clicked | verify the guard list matches your app |
+| `guarded skips` | destructive and session-ending controls not clicked | verify the guard list matches your app |
+| `clicks that needed a retry` | control was transiently covered | a rising number means overlay/timing problems |
 
 ## Triaging dead buttons
 

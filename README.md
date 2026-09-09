@@ -9,6 +9,7 @@ and an autonomous runner that clicks every button in your app and counts each on
 [![validate](https://github.com/CaduS0uza/qa-supreme/actions/workflows/validate.yml/badge.svg)](https://github.com/CaduS0uza/qa-supreme/actions/workflows/validate.yml)
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![skills](https://img.shields.io/badge/skills-29-blue.svg)](#the-skills)
+[![action](https://img.shields.io/badge/GitHub%20Action-ready-2088FF.svg)](#use-it-in-ci-one-step)
 [![agents](https://img.shields.io/badge/works%20with-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20Gemini%20CLI-8b5cf6.svg)](#install)
 
 </div>
@@ -62,6 +63,20 @@ node bin/qa-supreme.mjs run --url http://localhost:3000                  # full 
 node bin/qa-supreme.mjs crawl --url http://localhost:3000 --headed --slowMo 120   # watch it work
 ```
 
+**Behind a login? That is the normal case:**
+
+```bash
+node bin/qa-supreme.mjs login --url https://app.example.com \
+  --login-url https://app.example.com/login --user qa@example.com --pass "$QA_PASSWORD"
+
+node bin/qa-supreme.mjs run --url https://app.example.com --storage .qa-supreme/auth.json
+```
+
+The login form is detected automatically; override with `--user-selector` / `--pass-selector`
+when the markup is unusual. Without credentials the pipeline **says so and stops** —
+`authentication: target is behind a login` — instead of reporting an empty product. While a
+session is active it also refuses to click its way out of it.
+
 **Eight stages, in order, each gating the next:**
 
 | # | Stage | What it does |
@@ -72,7 +87,7 @@ node bin/qa-supreme.mjs crawl --url http://localhost:3000 --headed --slowMo 120 
 | 4 | `console` | every exception, console error and failed request raised while the app was driven |
 | 5 | `a11y` | WCAG 2.2 A/AA via axe-core, on every discovered state |
 | 6 | `perf` | LCP, CLS, TTFB, payload — against explicit budgets |
-| 7 | `visual` | screenshot baseline per state, diff on later runs |
+| 7 | `visual` | pixelmatch baseline per state, diff image + exact pixel count |
 | 8 | `security` | headers, cookie flags, client-side secrets, insecure forms |
 
 **Every click is counted on screen.** A HUD is injected into the page — live click count, the
@@ -106,7 +121,27 @@ every interaction, in order, with what it led to.
 </div>
 
 Output: a self-contained `report.html` (no CDN, opens anywhere), `run.json` for machines,
-screenshots per state, and **exit code 1 on NO-SHIP** so it gates a pipeline directly.
+screenshots per state, `*.diff.png` for visual changes, and **exit code 1 on NO-SHIP** so it
+gates a pipeline directly.
+
+The report opens with an **interactive state graph** — every state the crawler reached, every
+transition, colour-coded by kind (navigation, new tab, in-place change), with the control that
+caused it on hover. Click a state to see the screenshot the crawler saw there. Below it, the
+click ledger: every interaction in order, with what it led to.
+
+### Use it in CI, one step
+
+```yaml
+- uses: CaduS0uza/qa-supreme@v1
+  with:
+    url: http://localhost:3000
+    user: qa@example.com
+    password: ${{ secrets.QA_PASSWORD }}
+    fail-on: no-ship        # or `never` while you build trust
+```
+
+Writes a stage table to the job summary, exposes `verdict` / `clicks` / `states` as outputs, and
+uploads the full evidence as an artifact.
 
 ### Safety, by default
 
@@ -226,13 +261,17 @@ If evidence is impossible, say so and downgrade the claim. Never upgrade a claim
 
 `examples/demo-app/` is a fixture with deliberately seeded defects: a missing `alt`, a button
 that throws, dead buttons, a destructive control, a modal, tab panels, a form with weak
-validation. CI runs the full pipeline against it and asserts, in
-[`evals/assert-demo-findings.mjs`](evals/assert-demo-findings.mjs), that all 18 expected findings
-are still found — including that the crawler produces **zero** click errors and never audits its
-own HUD.
+validation. It also ships a real auth wall: `login.html` guards `dashboard.html` and `billing.html`.
+
+CI runs the full pipeline against both halves and asserts, in
+[`evals/assert-demo-findings.mjs`](evals/assert-demo-findings.mjs) and
+[`evals/assert-auth-findings.mjs`](evals/assert-auth-findings.mjs), that every expected finding
+is still found — including that the crawler produces **zero** click errors, never audits its own
+HUD, never clicks its way out of a session, and reaches pages that only exist behind the login.
 
 ```
-18/18 expectations met
+21/21 expectations met          # the public app: clicks, modal, tabs, dead buttons, a11y, security
+8/8 auth expectations met       # the protected area: wall detected, login works, private pages reached
 ```
 
 A pipeline that demands evidence from you and provides none about itself would be the largest

@@ -10,6 +10,13 @@ function isDangerous(el, cfg) {
   return cfg.denyText.some(t => hay.includes(t))
 }
 
+// Clicking "sign out" mid-crawl ends the session and every later state becomes the login page.
+// The deny list already covers it; this is the second line of defence for authenticated runs.
+function endsSession(el) {
+  const hay = `${el.name} ${el.href || ''}`.toLowerCase()
+  return /log ?out|sign ?out|sair|logout|\/login|encerrar/.test(hay)
+}
+
 /**
  * Breadth-first exploration of the whole reachable UI.
  * Every interactive element on every reachable state is clicked exactly once, new tabs are
@@ -58,7 +65,7 @@ export async function crawl(session, cfg) {
     for (let i = 0; i < Math.min(elements.length, cfg.maxClicksPerPage) && total < cfg.maxTotalClicks; i++) {
       const el = elements[i]
 
-      if (isDangerous(el, cfg)) {
+      if (isDangerous(el, cfg) || (cfg.auth && endsSession(el))) {
         skipped.push({ node: nodeId, element: el, reason: 'destructive-guard' })
         log.live(`skip (guarded) "${el.name || el.selector}"`)
         continue

@@ -30,9 +30,15 @@ export async function visual(session, cfg, prior) {
         rows.push({ state: name, result: 'BASELINE', detail: 'first run — baseline stored' })
         continue
       }
-      const diff = crudeDiff(fs.readFileSync(base), buf)
-      const changed = diff > cfg.visual.threshold
-      rows.push({ state: name, result: changed ? 'CHANGED' : 'MATCH', detail: `${(diff * 100).toFixed(2)}% byte delta` })
+      const cmp = await comparePng(fs.readFileSync(base), buf, path.join(curDir, name.replace('.png', '.diff.png')))
+      const changed = cmp.ratio > cfg.visual.threshold
+      rows.push({
+        state: name,
+        result: changed ? 'CHANGED' : 'MATCH',
+        detail: cmp.exact
+          ? `${cmp.pixels} px differ (${(cmp.ratio * 100).toFixed(2)}%)${changed ? ` · diff: ${path.basename(cmp.diffPath)}` : ''}`
+          : `${(cmp.ratio * 100).toFixed(2)}% byte delta (install pixelmatch + pngjs for per-pixel diffs)`
+      })
     } catch (e) {
       rows.push({ state: name, result: 'ERROR', detail: e.message.split('\n')[0].slice(0, 80) })
     }
@@ -46,8 +52,31 @@ export async function visual(session, cfg, prior) {
   }
 }
 
-// Dependency-free change signal: size delta plus a sampled byte comparison. Enough to flag
-// "this screen moved"; not a substitute for pixelmatch when you need a visual diff image.
+/**
+ * Per-pixel comparison when pixelmatch + pngjs are installed (they are declared dependencies),
+ * byte-level fallback when they are not — the stage must never be the reason a run fails.
+ */
+async function comparePng(baseBuf, curBuf, diffPath) {
+  try {
+    const { PNG } = await import('pngjs')
+    const pixelmatch = (await import('pixelmatch')).default
+    const a = PNG.sync.read(baseBuf)
+    const b = PNG.sync.read(curBuf)
+    if (a.width !== b.width || a.height !== b.height) {
+      return { exact: true, pixels: Math.abs(a.width * a.height - b.width * b.height), ratio: 1, diffPath, resized: true }
+    }
+    const diff = new PNG({ width: a.width, height: a.height })
+    const pixels = pixelmatch(a.data, b.data, diff.data, a.width, a.height, { threshold: 0.1, includeAA: false })
+    const ratio = pixels / (a.width * a.height)
+    if (pixels) fs.writeFileSync(diffPath, PNG.sync.write(diff))
+    return { exact: true, pixels, ratio, diffPath }
+  } catch {
+    return { exact: false, pixels: null, ratio: crudeDiff(baseBuf, curBuf), diffPath }
+  }
+}
+
+// Fallback signal: size delta plus a sampled byte comparison. Enough to flag "this screen
+// moved" when pixelmatch is unavailable.
 function crudeDiff(a, b) {
   if (a.length !== b.length) return Math.min(1, Math.abs(a.length - b.length) / Math.max(a.length, b.length) + 0.001)
   let differing = 0

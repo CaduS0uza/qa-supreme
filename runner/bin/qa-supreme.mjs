@@ -16,6 +16,7 @@ for (let i = 0; i < argv.length; i++) {
   if (next && !next.startsWith('--')) { flags[key] = coerce(next); i++ } else flags[key] = true
 }
 function coerce(v) { return /^\d+$/.test(v) ? Number(v) : v === 'true' ? true : v === 'false' ? false : v }
+const flag = (...names) => { for (const n of names) if (flags[n] !== undefined) return flags[n] }
 
 const HELP = `
 qa-supreme — autonomous QA pipeline
@@ -38,6 +39,15 @@ Options
   --no-hud               do not inject the on-screen counter
   --video                record video of the whole run
   --config <file>        config path                         (default qa-supreme.config.json)
+
+Authentication (most real apps need this)
+  qa-supreme login --url <app> --user <u> --pass <p>     log in once, save the session
+  --user <u> --pass <p>  credentials; the login form is found automatically
+  --login-url <url>      where the form lives, if it is not the target URL
+  --storage <file>       session file to save/reuse        (default <out>/auth.json)
+  --force-login          ignore the saved session and log in again
+  --user-selector / --pass-selector / --submit-selector / --success-selector
+                         override the automatic form detection
 `
 
 if (flags.help || cmd === 'help') { console.log(HELP); process.exit(0) }
@@ -61,6 +71,15 @@ if (cmd === 'init') {
 
 const cliArgs = {
   url: flags.url,
+  user: flag('user'),
+  pass: flag('pass', 'password'),
+  loginUrl: flag('login-url', 'loginUrl'),
+  storage: flag('storage', 'storage-state'),
+  userSelector: flag('user-selector'),
+  passSelector: flag('pass-selector'),
+  submitSelector: flag('submit-selector'),
+  successSelector: flag('success-selector'),
+  forceLogin: flags['force-login'] === true ? true : undefined,
   out: flags.out,
   headed: flags.headed === true ? true : undefined,
   slowMo: flags.slowMo,
@@ -72,12 +91,31 @@ const cliArgs = {
   video: flags.video === true ? true : undefined,
   fullSend: flags['full-send'] === true ? true : undefined,
   config: flags.config,
-  stages: flags.stages ? String(flags.stages).split(',').map(s => s.trim()) : (cmd !== 'run' && STAGES[cmd] ? [cmd] : undefined)
+  stages: flags.stages ? String(flags.stages).split(',').map(s => s.trim())
+    : cmd === 'login' ? ['smoke']
+    : (cmd !== 'run' && STAGES[cmd] ? [cmd] : undefined)
+}
+
+if (cmd !== 'run' && cmd !== 'login' && !STAGES[cmd]) {
+  console.error(`unknown command "${cmd}"\n${HELP}`)
+  process.exit(1)
 }
 
 try {
   const cfg = loadConfig(cliArgs)
-  if (cmd !== 'run' && !STAGES[cmd] && cmd !== 'run') { console.error(`unknown command "${cmd}"\n${HELP}`); process.exit(1) }
+
+  // `login` is not a stage: it opens a session, proves it works, and stores it for later runs.
+  if (cmd === 'login') {
+    cfg.auth = { ...(cfg.auth || {}), forceLogin: true }
+    const { openSession, closeSession } = await import('../src/browser.mjs')
+    const session = await openSession(cfg)
+    const ok = session.auth?.ok
+    console.log(ok
+      ? `\n✔ session saved to ${cfg.auth.storageState}\n   ${session.auth.detail}\n   reuse it with: --storage ${cfg.auth.storageState}\n`
+      : `\n✖ login failed: ${session.auth?.detail || 'unknown reason'}\n`)
+    await closeSession(session)
+    process.exit(ok ? 0 : 1)
+  }
   const run = await runPipeline(cfg)
   process.exit(run.verdict.decision === 'NO-SHIP' ? 1 : 0)
 } catch (e) {

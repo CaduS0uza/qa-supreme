@@ -1,0 +1,28 @@
+# Dogfooding: this repository runs its own published action against its own fixture.
+name: action
+
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Serve the demo fixture
+        run: |
+          python3 -m http.server 8099 --directory examples/demo-app &
+          for i in $(seq 1 20); do curl -sf http://localhost:8099/index.html >/dev/null && break; sleep 0.5; done
+      - name: QA Supreme
+        id: qa
+        uses: ./
+        with:
+          url: http://localhost:8099/index.html
+          fail-on: never          # the fixture is deliberately defective
+      - name: Show the outputs
+        run: |
+          echo "verdict: ${{ steps.qa.outputs.verdict }}"
+          echo "clicks:  ${{ steps.qa.outputs.clicks }}"
+          echo "states:  ${{ steps.qa.outputs.states }}"
+          test "${{ steps.qa.outputs.clicks }}" -ge 15

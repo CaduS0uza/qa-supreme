@@ -3,15 +3,24 @@
   "version": "1.0.0",
   "description": "Autonomous QA pipeline: crawls every clickable element of any web app, counts every click on screen, and proves quality in staged, evidenced reports.",
   "type": "module",
-  "bin": { "qa-supreme": "./bin/qa-supreme.mjs" },
-  "files": ["bin", "src"],
-  "engines": { "node": ">=18" },
+  "bin": {
+    "qa-supreme": "./bin/qa-supreme.mjs"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "demo": "node bin/qa-supreme.mjs run --url file://$PWD/../examples/demo-app/index.html --out ../.qa-out"
   },
   "dependencies": {
     "playwright": "^1.49.0",
-    "axe-core": "^4.10.2"
+    "axe-core": "^4.10.2",
+    "pixelmatch": "^6.0.0",
+    "pngjs": "^7.0.0"
   },
   "license": "MIT"
 }

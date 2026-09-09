@@ -80,6 +80,11 @@ node bin/qa-supreme.mjs run   --url http://localhost:3000        # 8 stages, HTM
 node bin/qa-supreme.mjs crawl --url http://localhost:3000 --headed --slowMo 120
 ```
 
+If the target is behind a login, authenticate first — otherwise every stage reports on a login
+page: `node bin/qa-supreme.mjs login --url <app> --login-url <login page> --user <u> --pass <p>`,
+then pass `--storage .qa-supreme/auth.json` to later runs. Ask the user for credentials to a
+test account; never use their production account, and never paste a password into a file you commit.
+
 Stages: smoke → crawl → forms → console → a11y → perf → visual → security. Every click is
 counted on screen and listed in the report's click ledger. Point it at local, preview or staging
 environments with a disposable account — never at production with real customer data.

@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Sign in — Demo Shop</title>
+<style>body{font:15px/1.6 system-ui,sans-serif;background:#0b1020;color:#e8f0ff;display:grid;place-items:center;height:100vh;margin:0}
+form{background:#141c33;border:1px solid #26314f;border-radius:12px;padding:26px;width:320px}
+label{display:block;margin:10px 0 4px;font-size:13px;color:#93a3c4}
+input{width:100%;padding:9px;border-radius:8px;border:1px solid #2f3c60;background:#0b1020;color:#e8f0ff;font:inherit}
+button{width:100%;margin-top:16px;padding:10px;border:0;border-radius:8px;background:#2563eb;color:#fff;font:inherit;cursor:pointer}
+.err{color:#f87171;font-size:13px;margin-top:10px}</style></head>
+<body>
+<form id="login">
+  <h2 style="margin:0 0 4px">Sign in</h2>
+  <p style="margin:0;color:#93a3c4;font-size:13px">demo fixture — user <b>demo</b>, password <b>demo123</b></p>
+  <label for="username">Username</label><input id="username" name="username" autocomplete="username">
+  <label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password">
+  <button type="submit">Sign in</button>
+  <p class="err" id="err" hidden role="alert">Invalid credentials.</p>
+</form>
+<script>
+document.getElementById('login').onsubmit = (e) => {
+  e.preventDefault()
+  const u = document.getElementById('username').value, p = document.getElementById('password').value
+  if (u === 'demo' && p === 'demo123') {
+    localStorage.setItem('demo_session', JSON.stringify({ user: u, exp: Date.now() + 864e5 }))
+    location.href = 'dashboard.html'
+  } else { document.getElementById('err').hidden = false }
+}
+</script></body></html>

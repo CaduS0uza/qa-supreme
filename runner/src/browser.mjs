@@ -2,6 +2,7 @@ import { chromium } from 'playwright'
 import fs from 'node:fs'
 import path from 'node:path'
 import { HUD_INIT } from './hud.mjs'
+import { ensureAuth } from './auth.mjs'
 
 // One browser session shared by every stage, collecting console errors, page errors and
 // failed network responses for the whole run. Evidence is cumulative, never per-stage.
@@ -64,7 +65,10 @@ export async function openSession(cfg) {
 
   const page = await context.newPage()
   wire(page)
-  return { browser, context, page, findings }
+
+  const session = { browser, context, page, findings, auth: null }
+  if (cfg.auth) session.auth = await ensureAuth(context, page, cfg)
+  return session
 }
 
 export async function closeSession(s) {

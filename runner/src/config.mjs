@@ -27,9 +27,15 @@ export const DEFAULTS = {
   ],
   denySelectors: ['[data-qa-danger]', '[data-qa-skip]'],
   stages: ['smoke', 'crawl', 'forms', 'console', 'a11y', 'perf', 'visual', 'security'],
-  auth: null,          // { storageState: 'auth.json' } or { username, password, loginUrl, userSel, passSel, submitSel }
+  // { username, password, loginUrl?, storageState?, userSelector?, passSelector?,
+  //   submitSelector?, successSelector?, forceLogin? }
+  auth: null,
   budgets: { lcpMs: 2500, cls: 0.1, ttfbMs: 800, jsHeapMb: 150 },
-  visual: { threshold: 0.02 }
+  // 0.1% of pixels. Tuned for pixelmatch with antialiasing ignored: a changed headline is
+  // ~0.1%, so a looser bar (the old 2%, sized for byte comparison) silently passed real
+  // regressions. Raise it per project if your app has genuinely noisy regions — and mask
+  // those regions instead, if you can.
+  visual: { threshold: 0.001 }
 }
 
 export function loadConfig(cliArgs = {}) {
@@ -44,6 +50,19 @@ export function loadConfig(cliArgs = {}) {
   cfg.budgets = { ...DEFAULTS.budgets, ...(fileCfg.budgets || {}) }
   cfg.visual = { ...DEFAULTS.visual, ...(fileCfg.visual || {}) }
   if (cliArgs.fullSend) cfg.denyText = []
+
+  // CLI credentials override or create the auth block.
+  const cliAuth = stripUndefined({
+    username: cliArgs.user, password: cliArgs.pass, loginUrl: cliArgs.loginUrl,
+    storageState: cliArgs.storage, userSelector: cliArgs.userSelector,
+    passSelector: cliArgs.passSelector, submitSelector: cliArgs.submitSelector,
+    successSelector: cliArgs.successSelector, forceLogin: cliArgs.forceLogin
+  })
+  if (Object.keys(cliAuth).length || fileCfg.auth) cfg.auth = { ...(fileCfg.auth || {}), ...cliAuth }
+  if (cfg.auth && !cfg.auth.storageState) cfg.auth.storageState = path.join(cfg.out, 'auth.json')
+  if (cfg.auth && !cfg.auth.username && !fs.existsSync(path.resolve(cfg.auth.storageState || ''))) {
+    throw new Error('auth needs --user and --pass (or a saved session via --storage)')
+  }
   if (!cfg.url) throw new Error('No target URL. Pass --url <url> or set "url" in qa-supreme.config.json')
   for (const k of ['maxDepth', 'maxPages', 'maxClicksPerPage', 'maxTotalClicks', 'timeoutMs', 'clickTimeoutMs']) {
     const v = Number(cfg[k])

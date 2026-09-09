@@ -1,0 +1,123 @@
+name: 'QA Supreme'
+description: 'Autonomously click every control of a web app and gate the build on the evidence: smoke, crawl, forms, console, a11y, perf, visual, security.'
+author: 'QA Supreme contributors'
+branding:
+  icon: 'check-circle'
+  color: 'blue'
+
+inputs:
+  url:
+    description: 'Target URL. Start your app first (or point at a preview deployment).'
+    required: true
+  stages:
+    description: 'Comma-separated stages to run, in order.'
+    required: false
+    default: 'smoke,crawl,forms,console,a11y,perf,visual,security'
+  user:
+    description: 'Username for apps behind a login.'
+    required: false
+  password:
+    description: 'Password. Pass it from a repository secret, never inline.'
+    required: false
+  login-url:
+    description: 'Where the login form lives, if it is not the target URL.'
+    required: false
+  max-pages:
+    description: 'How many states to explore.'
+    required: false
+    default: '40'
+  max-clicks:
+    description: 'Global click budget.'
+    required: false
+    default: '800'
+  out:
+    description: 'Evidence directory.'
+    required: false
+    default: '.qa-supreme'
+  fail-on:
+    description: 'no-ship (default) fails the job on a NO-SHIP verdict; never always succeeds and leaves the report as the record.'
+    required: false
+    default: 'no-ship'
+  node-version:
+    description: 'Node version used to run the pipeline.'
+    required: false
+    default: '20'
+
+outputs:
+  verdict:
+    description: 'SHIP, SHIP WITH DEBT, or NO-SHIP.'
+    value: ${{ steps.qa.outputs.verdict }}
+  clicks:
+    description: 'Clicks performed.'
+    value: ${{ steps.qa.outputs.clicks }}
+  states:
+    description: 'States discovered.'
+    value: ${{ steps.qa.outputs.states }}
+  report:
+    description: 'Path to the HTML evidence report.'
+    value: ${{ steps.qa.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install QA Supreme
+      shell: bash
+      working-directory: ${{ github.action_path }}/runner
+      run: npm install --no-audit --no-fund --silent
+
+    - name: Install browser
+      shell: bash
+      working-directory: ${{ github.action_path }}/runner
+      # --with-deps needs apt and fails on transient mirror errors; ubuntu runners already
+      # carry the shared libraries.
+      run: npx playwright install --with-deps chromium || npx playwright install chromium
+
+    - name: Run the pipeline
+      id: qa
+      shell: bash
+      env:
+        QA_USER: ${{ inputs.user }}
+        QA_PASS: ${{ inputs.password }}
+      run: |
+        set +e
+        OUT="${{ github.workspace }}/${{ inputs.out }}"
+        ARGS=(run --url "${{ inputs.url }}" --out "$OUT" --stages "${{ inputs.stages }}"
+              --maxPages "${{ inputs.max-pages }}" --maxTotalClicks "${{ inputs.max-clicks }}")
+        [ -n "$QA_USER" ] && ARGS+=(--user "$QA_USER" --pass "$QA_PASS")
+        [ -n "${{ inputs.login-url }}" ] && ARGS+=(--login-url "${{ inputs.login-url }}")
+        node "${{ github.action_path }}/runner/bin/qa-supreme.mjs" "${ARGS[@]}"
+        CODE=$?
+
+        VERDICT=$(node -e "try{console.log(require('$OUT/run.json').verdict.decision)}catch(e){console.log('ERROR')}")
+        CLICKS=$(node -e "try{console.log(require('$OUT/run.json').totals.clicks)}catch(e){console.log(0)}")
+        STATES=$(node -e "try{console.log(require('$OUT/run.json').totals.states)}catch(e){console.log(0)}")
+        echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
+        echo "clicks=$CLICKS"   >> "$GITHUB_OUTPUT"
+        echo "states=$STATES"   >> "$GITHUB_OUTPUT"
+        echo "report=${{ inputs.out }}/report.html" >> "$GITHUB_OUTPUT"
+
+        {
+          echo "## QA Supreme — $VERDICT"
+          echo ""
+          echo "**$CLICKS clicks** across **$STATES states** on \`${{ inputs.url }}\`"
+          echo ""
+          echo "| stage | status | summary |"
+          echo "|---|---|---|"
+          node -e "const r=require('$OUT/run.json');for(const[k,v]of Object.entries(r.stages))console.log(\`| \${k} | \${v.status.toUpperCase()} | \${v.summary} |\`)" 2>/dev/null
+          echo ""
+          echo "_Full evidence in the \`qa-supreme-report\` artifact._"
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        if [ "${{ inputs.fail-on }}" = "never" ]; then exit 0; fi
+        exit $CODE
+
+    - if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: qa-supreme-report
+        path: ${{ inputs.out }}/
+        retention-days: 14
