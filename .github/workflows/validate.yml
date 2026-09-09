@@ -41,13 +41,18 @@ jobs:
       - name: Assert the pipeline found the seeded defects
         run: node evals/assert-demo-findings.mjs .qa-out/run.json
 
+      # The fixture is deliberately defective, so every run here exits 1 on its NO-SHIP
+      # verdict — that is the product working. The assertions live in the eval steps below.
       - name: Run against the protected area without credentials
         working-directory: runner
         run: node bin/qa-supreme.mjs run --url http://localhost:8099/dashboard.html --out ../.qa-unauth || true
 
       - name: Run against the protected area with credentials
         working-directory: runner
-        run: node bin/qa-supreme.mjs run --url http://localhost:8099/dashboard.html --login-url http://localhost:8099/login.html --user demo --pass demo123 --out ../.qa-auth
+        run: |
+          node bin/qa-supreme.mjs run --url http://localhost:8099/dashboard.html \
+            --login-url http://localhost:8099/login.html --user demo --pass demo123 \
+            --out ../.qa-auth || true
 
       - name: Assert the authenticated path works
         run: node evals/assert-auth-findings.mjs .qa-unauth/run.json .qa-auth/run.json
