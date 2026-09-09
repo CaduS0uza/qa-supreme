@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Account — Demo Shop</title>
+<style>body{font:15px/1.6 system-ui,sans-serif;margin:0;background:#f6f7fb}header{background:#0b1020;color:#fff;padding:16px 24px}
+main{max-width:860px;margin:24px auto;padding:0 20px}input{padding:8px;border:1px solid #c9d2ea;border-radius:8px;display:block;margin:8px 0;width:280px}
+button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid #c9d2ea;background:#fff;cursor:pointer}</style></head>
+<body><header><b>Account</b> · <a href="index.html" style="color:#cbd5f5">Home</a></header>
+<main><h1>Profile</h1>
+<form id="profile"><input name="name" placeholder="Full name" required><input name="email" type="email" placeholder="Email" required>
+<button type="submit">Save</button></form>
+<button id="logout">Log out</button>
+<script>document.getElementById('profile').onsubmit = e => { e.preventDefault() }</script>
+</main></body></html>

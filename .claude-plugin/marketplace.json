@@ -1,0 +1,20 @@
+{
+  "name": "qa-supreme",
+  "owner": {
+    "name": "QA Supreme contributors",
+    "url": "https://github.com/CaduS0uza/qa-supreme"
+  },
+  "metadata": {
+    "description": "The supreme QA agent for coding agents.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "qa-supreme",
+      "source": "./",
+      "description": "Risk-first, evidence-enforced QA pipeline: 17 testing skills plus an orchestrator agent.",
+      "version": "1.0.0",
+      "category": "testing"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+name: validate
+
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  skills:
+    name: skills + manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Validate skill frontmatter, links and routing
+        run: node scripts/validate-skills.mjs
+
+  runner:
+    name: runner end-to-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Install runner
+        working-directory: runner
+        run: npm install --no-audit --no-fund
+      - name: Install browser
+        working-directory: runner
+        run: npx playwright install --with-deps chromium
+      - name: Serve the demo fixture
+        run: python3 -m http.server 8099 --directory examples/demo-app &
+      - name: Run the full pipeline against the fixture
+        working-directory: runner
+        run: node bin/qa-supreme.mjs run --url http://localhost:8099/index.html --out ../.qa-out || true
+      - name: Assert the pipeline found the seeded defects
+        run: node evals/assert-demo-findings.mjs .qa-out/run.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-supreme-demo-report
+          path: .qa-out/
+          retention-days: 7

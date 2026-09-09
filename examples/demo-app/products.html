@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Products — Demo Shop</title>
+<style>body{font:15px/1.6 system-ui,sans-serif;margin:0;background:#f6f7fb}header{background:#0b1020;color:#fff;padding:16px 24px}
+main{max-width:860px;margin:24px auto;padding:0 20px}button{font:inherit;padding:8px 14px;margin:4px;border-radius:8px;border:1px solid #c9d2ea;background:#fff;cursor:pointer}
+a{color:#2563eb}</style></head>
+<body><header><b>Products</b> · <a href="index.html" style="color:#cbd5f5">Home</a></header>
+<main><h1>Catalogue</h1>
+<button id="filter">Filter</button><button id="sort">Sort</button><button id="compare">Compare selected</button>
+<p><a href="account.html">Go to account</a> · <a href="index.html">Back home</a></p>
+<div id="panel"></div>
+<script>
+document.getElementById('filter').onclick = () => { document.getElementById('panel').innerHTML = '<button id="f-cheap">Under $50</button><button id="f-new">New arrivals</button>' }
+</script>
+</main></body></html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Demo Shop — QA Supreme fixture</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font:15px/1.6 system-ui,sans-serif;margin:0;background:#f6f7fb;color:#111}
+header{background:#0b1020;color:#fff;padding:16px 24px;display:flex;gap:16px;align-items:center}
+nav a{color:#cbd5f5;margin-right:14px;text-decoration:none}
+main{max-width:860px;margin:24px auto;padding:0 20px}
+.card{background:#fff;border:1px solid #e4e7f2;border-radius:10px;padding:18px;margin:14px 0}
+button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid #c9d2ea;background:#fff;cursor:pointer;margin:4px 6px 4px 0}
+button.primary{background:#2563eb;color:#fff;border-color:#2563eb}
+button.danger{background:#dc2626;color:#fff;border-color:#dc2626}
+[role=tabpanel][hidden]{display:none}
+.tabs button[aria-selected=true]{background:#eef2ff;border-color:#2563eb}
+dialog{border:none;border-radius:12px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+input,select,textarea{font:inherit;padding:8px;border:1px solid #c9d2ea;border-radius:8px;width:100%;margin:6px 0}
+.err{color:#dc2626;font-size:13px}
+</style></head>
+<body>
+<header>
+  <b>Demo Shop</b>
+  <nav><a href="index.html">Home</a><a href="products.html">Products</a><a href="account.html">Account</a>
+  <a href="https://example.com" target="_blank">Docs</a></nav>
+</header>
+<main>
+  <div class="card">
+    <h1>Storefront</h1>
+    <button class="primary" id="add">Add to cart</button>
+    <button id="wish">Save to wishlist</button>
+    <button id="openModal">Open details</button>
+    <button class="danger" data-testid="delete-account">Delete account</button>
+    <button id="broken">Trigger console error</button>
+    <button id="dead">Dead button</button>
+    <img src="banner.png">
+  </div>
+
+  <div class="card tabs">
+    <div role="tablist" aria-label="Product info">
+      <button role="tab" aria-selected="true" aria-controls="p1" id="t1">Specs</button>
+      <button role="tab" aria-selected="false" aria-controls="p2" id="t2">Shipping</button>
+      <button role="tab" aria-selected="false" aria-controls="p3" id="t3">Reviews</button>
+    </div>
+    <div role="tabpanel" id="p1" aria-labelledby="t1"><p>Weight 1.2kg. <button id="spec-more">More specs</button></p></div>
+    <div role="tabpanel" id="p2" aria-labelledby="t2" hidden><p>Ships in 3 days. <button id="ship-calc">Calculate shipping</button></p></div>
+    <div role="tabpanel" id="p3" aria-labelledby="t3" hidden><p>4.6 stars. <button id="write-review">Write a review</button></p></div>
+  </div>
+
+  <div class="card">
+    <h2>Newsletter</h2>
+    <form id="signup" novalidate>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required placeholder="you@example.com">
+      <label for="qty">Quantity</label>
+      <input id="qty" name="qty" type="number" min="1" max="10" required>
+      <span class="err" id="formError" hidden role="alert">Please provide a valid email and a quantity between 1 and 10.</span>
+      <button type="submit" class="primary">Subscribe</button>
+    </form>
+  </div>
+</main>
+
+<dialog id="modal">
+  <h3>Product details</h3>
+  <p>Extra controls only reachable once the modal is open.</p>
+  <button id="modal-share">Share</button>
+  <button id="modal-compare">Compare</button>
+  <button id="modal-close">Close</button>
+</dialog>
+
+<script>
+document.getElementById('openModal').onclick = () => document.getElementById('modal').showModal()
+document.getElementById('modal-close').onclick = () => document.getElementById('modal').close()
+document.getElementById('broken').onclick = () => { undefinedFunctionOnPurpose() }
+document.querySelectorAll('[role=tab]').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('[role=tab]').forEach(t => {
+      t.setAttribute('aria-selected', String(t === tab))
+      document.getElementById(t.getAttribute('aria-controls')).hidden = t !== tab
+    })
+  }
+})
+document.getElementById('signup').onsubmit = (e) => {
+  e.preventDefault()
+  const email = document.getElementById('email').value
+  const qty = Number(document.getElementById('qty').value)
+  const bad = !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email) || !(qty >= 1 && qty <= 10)
+  document.getElementById('formError').hidden = !bad
+  if (!bad) alert('Subscribed')
+}
+document.getElementById('add').onclick = function () { this.textContent = 'Added ✓' }
+</script>
+</body></html>
