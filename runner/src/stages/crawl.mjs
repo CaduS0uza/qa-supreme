@@ -22,6 +22,7 @@ export async function crawl(session, cfg) {
   const skipped = []
   const errors = []
   const visited = new Set()
+  let retried = 0
   const queue = [{ url: norm(cfg.url), depth: 0, from: null }]
   let total = 0
 
@@ -110,7 +111,22 @@ export async function crawl(session, cfg) {
         const onPage = (p) => { popup = p }
         context.on('page', onPage)
         try {
-          await locator.click({ timeout: cfg.clickTimeoutMs, trial: false })
+          try {
+            await locator.click({ timeout: cfg.clickTimeoutMs, trial: false })
+          } catch (first) {
+            // One retry from a clean state. A control can be transiently covered by a toast,
+            // an animation or a late-loading overlay — that is the environment, not a defect.
+            // A control that refuses twice from a fresh page is a finding, and stays one.
+            retried += 1
+            await page.goto(node.url, { waitUntil: 'domcontentloaded', timeout: cfg.timeoutMs })
+            await page.waitForTimeout(250)
+            if (el.revealedBy) {
+              await page.locator(el.revealedBy).first().click({ timeout: cfg.clickTimeoutMs }).catch(() => {})
+              await page.waitForTimeout(200)
+            }
+            await page.locator(el.selector).first().click({ timeout: cfg.clickTimeoutMs })
+            dirty = true
+          }
           await page.waitForTimeout(180)
         } finally {
           context.off('page', onPage)
@@ -170,6 +186,8 @@ export async function crawl(session, cfg) {
   log.counter('guarded skips (destructive)', guarded)
   log.counter('unreachable on revisit', skipped.length - guarded)
   log.counter('click errors', errors.length)
+  if (retried) log.counter('clicks that needed a retry', retried, '(transient overlay / timing)')
+  errors.forEach(e => log.fail(`${e.element}: ${e.message}`))
 
   const dead = clicks.filter(c => c.outcome === 'no-op')
   if (dead.length) log.warn(`${dead.length} controls did nothing observable (candidate dead buttons)`)
@@ -178,6 +196,6 @@ export async function crawl(session, cfg) {
     status: errors.length ? 'warn' : 'pass',
     summary: `${total} clicks · ${graph.nodes.length} states · ${graph.edges.length} transitions`,
     data: { graph, clicks, skipped, errors, totalClicks: total, deadControls: dead.length,
-            guardedSkips: skipped.filter(s => s.reason === 'destructive-guard').length }
+            guardedSkips: skipped.filter(s => s.reason === 'destructive-guard').length, retried }
   }
 }

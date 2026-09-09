@@ -40,4 +40,13 @@ for (const [name, fn] of expectations) {
   if (!ok) failed++
 }
 console.log(`\n${expectations.length - failed}/${expectations.length} expectations met`)
+if (failed) {
+  // Diagnosis in the log itself: a red CI that does not say why is a second failure.
+  const c = s.crawl?.data || {}
+  console.log('\ndiagnostics:')
+  console.log(`  clicks ${c.totalClicks} · states ${run.totals?.states} · transitions ${run.totals?.transitions} · retried ${c.retried ?? 0}`)
+  ;(c.errors || []).forEach(x => console.log(`  click error: ${x.element} -> ${x.message}`))
+  ;(c.skipped || []).filter(x => x.reason !== 'destructive-guard').forEach(x => console.log(`  skipped: ${x.element?.name} (${x.reason})`))
+  Object.entries(s).forEach(([k, v]) => console.log(`  stage ${k}: ${v.status} — ${v.summary}`))
+}
 process.exit(failed ? 1 : 0)
