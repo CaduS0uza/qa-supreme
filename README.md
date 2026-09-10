@@ -3,12 +3,12 @@
 # QA Supreme
 
 **A complete QA department for your coding agent.**
-29 testing skills, an orchestrator agent that refuses to call anything green without proof,
-and an autonomous runner that clicks every button in your app and counts each one on screen.
+35 testing skills, a protocol that decides what a release has to prove, and an autonomous
+runner that clicks every button in your app — and tells you which ones are broken.
 
 [![validate](https://github.com/CaduS0uza/qa-supreme/actions/workflows/validate.yml/badge.svg)](https://github.com/CaduS0uza/qa-supreme/actions/workflows/validate.yml)
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![skills](https://img.shields.io/badge/skills-29-blue.svg)](#the-skills)
+[![skills](https://img.shields.io/badge/skills-35-blue.svg)](#the-skills)
 [![action](https://github.com/CaduS0uza/qa-supreme/actions/workflows/example-action.yml/badge.svg)](#use-it-in-ci-one-step)
 [![agents](https://img.shields.io/badge/works%20with-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20Gemini%20CLI-8b5cf6.svg)](#install)
 
@@ -42,9 +42,10 @@ Everything here — the skills, the agent, the runner, the CI — exists to enfo
 
 | | |
 |---|---|
+| 🛡️ **The supreme protocol** | [`never-break-prod`](skills/never-break-prod/SKILL.md) — seven gates between a change and production, each closed only by evidence, `UNPROVEN` blocks like a failure |
 | 🧠 **1 orchestrator agent** | Routes any quality request to the right skill, holds session state, enforces the Evidence Contract, returns ship / no-ship |
-| 📚 **29 skills** | Strategy, authoring, judgment, diagnosis, non-functional, process — every test type a senior QA owns |
-| 🤖 **1 autonomous runner** | Playwright pipeline that crawls your whole app, clicks every control, and proves what it found |
+| 📚 **35 skills** | Strategy, authoring, judgment, diagnosis, non-functional, process — every test type a senior QA owns |
+| 🤖 **1 autonomous runner** | Playwright pipeline that crawls your whole app, judges every control, and proves what it found |
 | 🔍 **24-entry false-positive catalogue** | The tests that pass while your product is broken, and how to spot them |
 | ✅ **Self-testing CI** | The runner is held to its own standard: a fixture with seeded defects it must keep finding |
 
@@ -59,8 +60,29 @@ storefront — and it explores the whole thing on its own.
 git clone https://github.com/CaduS0uza/qa-supreme && cd qa-supreme/runner
 npm install && npx playwright install chromium
 
-node bin/qa-supreme.mjs run --url http://localhost:3000                  # full pipeline
-node bin/qa-supreme.mjs crawl --url http://localhost:3000 --headed --slowMo 120   # watch it work
+cd /your/project && node /path/to/qa-supreme/runner/bin/qa-supreme.mjs here
+```
+
+`here` reads your project — Next, Vite, CRA, Nuxt, Astro, Remix, Angular, Django, Rails, Laravel
+or a static folder — starts it, waits for it to answer, tests it, and shuts it down. Nothing to
+configure. Or point it at a URL yourself:
+
+```bash
+node bin/qa-supreme.mjs run   --url http://localhost:3000     # full pipeline
+node bin/qa-supreme.mjs watch --url http://localhost:3000     # real window, slowed down, recorded
+```
+
+**You watch it work.** In a terminal the run is visible by default — a real browser window, one
+printed line per click saying what it did, and the on-screen counter going up. In CI it goes
+headless on its own. `--lang pt` narrates in Portuguese.
+
+```
+#  1 a        "Home"                     ↻ reloaded the page
+#  2 a        "Products"                 → opened another page  /products.html
+#  5 button   "Add to cart"              ✎ changed the screen
+      ⚠ skipped "Delete account" — destructive action, not clicking
+#  8 button   "Trigger console error"    · nothing changed
+      ✖ BROKEN "Trigger console error"  (2 exceptions)
 ```
 
 **Behind a login? That is the normal case:**
@@ -76,6 +98,19 @@ The login form is detected automatically; override with `--user-selector` / `--p
 when the markup is unusual. Without credentials the pipeline **says so and stops** —
 `authentication: target is behind a login` — instead of reporting an empty product. While a
 session is active it also refuses to click its way out of it.
+
+### Every button, judged — not just clicked
+
+The crawler decides what each control actually did, and attributes the effect only when the
+control owns it (errors from a page you navigated to belong to that page, not to the link):
+
+| Verdict | Meaning |
+|---|---|
+| `works` / `network only` | it did something — visibly, or over the network |
+| `dead` | no change, no request, no error — **nobody wired it** |
+| `suspect` | a console error or a failed request came from it |
+| `broken` | it threw an uncaught exception or triggered a 5xx |
+| `unclickable` | refused a click twice from a clean state |
 
 **Eight stages, in order, each gating the next:**
 
@@ -186,6 +221,11 @@ cp -r qa-supreme/skills/* .claude/skills/       # or .cursor/skills, .agents/ski
 
 ## The skills
 
+### The protocol
+| Skill | Use it when |
+|---|---|
+| [`never-break-prod`](skills/never-break-prod/SKILL.md) | **the system is live and a regression is expensive — this is the one that owns the outcome** |
+
 ### Decide what to test
 | Skill | Use it when |
 |---|---|
@@ -202,6 +242,10 @@ cp -r qa-supreme/skills/* .claude/skills/       # or .cursor/skills, .agents/ski
 | [`state-machine-testing`](skills/state-machine-testing/SKILL.md) | anything with a status: checkout, onboarding, subscriptions |
 | [`contract-testing-pact`](skills/contract-testing-pact/SKILL.md) | services that deploy independently |
 | [`test-data-management`](skills/test-data-management/SKILL.md) | factories, isolation, frozen clocks, seeded randomness |
+| [`payment-testing`](skills/payment-testing/SKILL.md) | checkout, refunds, subscriptions — decline matrix and money invariants |
+| [`database-testing`](skills/database-testing/SKILL.md) | migrations, constraints, tenant scoping and RLS at the database |
+| [`tracking-testing`](skills/tracking-testing/SKILL.md) | pixels, GA4, conversion events, consent gating, dedup |
+| [`transactional-email-testing`](skills/transactional-email-testing/SKILL.md) | signup, resets, receipts — exactly once, to the right person |
 
 ### Judge the tests you already have
 | Skill | Use it when |
@@ -237,6 +281,7 @@ cp -r qa-supreme/skills/* .claude/skills/       # or .cursor/skills, .agents/ski
 |---|---|
 | [`smoke-and-sanity`](skills/smoke-and-sanity/SKILL.md) | the 60-second gate that decides if a build is worth testing |
 | [`ci-wiring`](skills/ci-wiring/SKILL.md) | tiering, sharding, caching, artifacts, flake reporting |
+| [`environment-parity`](skills/environment-parity/SKILL.md) | "it worked in staging" — config drift, migrations, flags |
 | [`release-gate`](skills/release-gate/SKILL.md) | ship / no-ship with 12 evidenced rows |
 
 ---
@@ -286,7 +331,11 @@ node evals/assert-demo-findings.mjs .qa-out/run.json
 
 ## Prior art
 
-QA Supreme stands on work published by others, and says so:
+Before this repository's second version, we cloned and read **143 skills across six public
+collections** — the code, not the READMEs. What each does well, what it leaves open, and which
+idea of theirs lives where here: [`docs/market-analysis.md`](docs/market-analysis.md).
+
+Nothing was copied. Every skill here is original text; the ideas below are credited by name:
 
 - [petrkindlmann/qa-skills](https://github.com/petrkindlmann/qa-skills) — the broadest QA skill catalogue for agent runtimes
 - [voidmatcha/e2e-skills](https://github.com/voidmatcha/e2e-skills) — E2E anti-pattern taxonomy and false-positive framing

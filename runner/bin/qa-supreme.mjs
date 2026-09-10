@@ -21,6 +21,8 @@ const flag = (...names) => { for (const n of names) if (flags[n] !== undefined) 
 const HELP = `
 qa-supreme — autonomous QA pipeline
 
+  qa-supreme here                     detect this project, start it, test it, shut it down
+  qa-supreme watch --url <url>        run it in a real window, slowed down, so you can watch
   qa-supreme run --url <url>          run every stage (default)
   qa-supreme <stage> --url <url>      run one stage: ${Object.keys(STAGES).join(', ')}
   qa-supreme init                     write qa-supreme.config.json in the current directory
@@ -28,8 +30,12 @@ qa-supreme — autonomous QA pipeline
 Options
   --url <url>            target (or "url" in the config file)
   --out <dir>            evidence directory                 (default ${DEFAULTS.out})
-  --headed               watch the run in a real window, HUD counting clicks live
-  --slowMo <ms>          slow every action down, for demos   (default 0)
+  --headed               real window with the HUD counting clicks (default in a terminal)
+  --headless             no window — the default in CI and when output is piped
+  --slowMo <ms>          slow every action down                (watch mode: 220)
+  --video                record the whole run to video          (on in watch mode)
+  --lang <en|pt>         language of the live transcript        (or QA_LANG=pt)
+  --quiet                no per-click transcript
   --maxPages <n>         states to explore                   (default ${DEFAULTS.maxPages})
   --maxDepth <n>         crawl depth                         (default ${DEFAULTS.maxDepth})
   --maxClicksPerPage <n> click budget per state              (default ${DEFAULTS.maxClicksPerPage})
@@ -82,6 +88,10 @@ const cliArgs = {
   forceLogin: flags['force-login'] === true ? true : undefined,
   out: flags.out,
   headed: flags.headed === true ? true : undefined,
+  headless: flags.headless === true ? true : undefined,
+  watch: cmd === 'watch' || flags.watch === true ? true : undefined,
+  narrate: flags.quiet === true ? false : undefined,
+  lang: flag('lang'),
   slowMo: flags.slowMo,
   maxPages: flags.maxPages,
   maxDepth: flags.maxDepth,
@@ -93,12 +103,33 @@ const cliArgs = {
   config: flags.config,
   stages: flags.stages ? String(flags.stages).split(',').map(s => s.trim())
     : cmd === 'login' ? ['smoke']
+    : cmd === 'watch' ? undefined
     : (cmd !== 'run' && STAGES[cmd] ? [cmd] : undefined)
 }
 
-if (cmd !== 'run' && cmd !== 'login' && !STAGES[cmd]) {
+const HERE = cmd === 'here'
+
+if (!HERE && cmd !== 'run' && cmd !== 'login' && cmd !== 'watch' && !STAGES[cmd]) {
   console.error(`unknown command "${cmd}"\n${HELP}`)
   process.exit(1)
+}
+
+if (HERE) {
+  const { detectProject, startProject } = await import('../src/detect.mjs')
+  const project = detectProject()
+  if (!project) {
+    console.error('\n✖ could not tell how to start this project.\n   Start it yourself and pass --url, e.g. qa-supreme run --url http://localhost:3000\n')
+    process.exit(2)
+  }
+  const url = flags.url || `http://localhost:${flags.port || project.port}`
+  const cfg = loadConfig({ ...cliArgs, url })
+  const app = await startProject(project, url)
+  let code = 2
+  try {
+    const run = await runPipeline(cfg)
+    code = run.verdict.decision === 'NO-SHIP' ? 1 : 0
+  } finally { app.stop() }
+  process.exit(code)
 }
 
 try {

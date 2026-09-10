@@ -1,11 +1,17 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { setLang } from './i18n.mjs'
 
 export const DEFAULTS = {
   url: null,
   out: '.qa-supreme',
-  headed: false,
+  // Watching the run is the default for a person: a QA you cannot see is a QA you have to
+  // take on faith. Machines (CI, pipes, no TTY) get headless automatically.
+  headed: Boolean(process.stdout.isTTY) && !process.env.CI,
   slowMo: 0,
+  narrate: null,      // resolved below: one printed line per click when a human is watching
+  watch: false,       // watch mode: headed + slowed down + video + bigger HUD
+  lang: process.env.QA_LANG || 'en',   // transcript language: en | pt
   maxDepth: 4,
   maxPages: 40,
   maxClicksPerPage: 60,
@@ -47,8 +53,18 @@ export function loadConfig(cliArgs = {}) {
     catch (e) { throw new Error(`Invalid config at ${abs}: ${e.message}`) }
   }
   const cfg = { ...DEFAULTS, ...fileCfg, ...stripUndefined(cliArgs) }
+  if (!Array.isArray(cfg.stages)) cfg.stages = DEFAULTS.stages
   cfg.budgets = { ...DEFAULTS.budgets, ...(fileCfg.budgets || {}) }
   cfg.visual = { ...DEFAULTS.visual, ...(fileCfg.visual || {}) }
+  if (cfg.watch) {
+    cfg.headed = true
+    if (!cliArgs.slowMo && !fileCfg.slowMo) cfg.slowMo = 220
+    cfg.video = cfg.video ?? true
+  }
+  if (cliArgs.headless) cfg.headed = false
+  if (cfg.narrate === null) cfg.narrate = cfg.headed || cfg.watch
+
+  setLang(cfg.lang)
   if (cliArgs.fullSend) cfg.denyText = []
 
   // CLI credentials override or create the auth block.

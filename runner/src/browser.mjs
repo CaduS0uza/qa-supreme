@@ -39,8 +39,11 @@ export async function openSession(cfg) {
   const context = await browser.newContext(contextOpts)
   context.setDefaultTimeout(cfg.timeoutMs)
 
-  const findings = { console: [], pageErrors: [], network: [], dialogs: [] }
-  if (cfg.hud) await context.addInitScript(HUD_INIT)
+  const findings = { console: [], pageErrors: [], network: [], dialogs: [], requests: 0, lastRequests: [] }
+  if (cfg.hud) {
+    if (cfg.watch) await context.addInitScript('window.__qaBig = true')
+    await context.addInitScript(HUD_INIT)
+  }
 
   const wire = (page) => {
     page.on('console', (m) => {
@@ -50,6 +53,13 @@ export async function openSession(cfg) {
     })
     page.on('pageerror', (e) => {
       findings.pageErrors.push({ message: String(e.message).slice(0, 500), url: page.url() })
+    })
+    page.on('request', (r) => {
+      const u = r.url()
+      if (u.startsWith('data:') || /\.(png|jpe?g|gif|svg|webp|woff2?|css|ico)(\?|$)/i.test(u)) return
+      findings.requests += 1
+      findings.lastRequests.push(u.slice(0, 200))
+      if (findings.lastRequests.length > 80) findings.lastRequests.shift()
     })
     page.on('response', (r) => {
       const s = r.status()

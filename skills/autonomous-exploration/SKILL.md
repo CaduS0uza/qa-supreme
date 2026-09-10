@@ -13,10 +13,15 @@ UI state and produces an evidence report.
 
 ```bash
 cd runner && npm install                 # first time only
-node bin/qa-supreme.mjs run --url https://app.example.com          # full pipeline
-node bin/qa-supreme.mjs crawl --url http://localhost:3000          # exploration only
-node bin/qa-supreme.mjs crawl --url http://localhost:3000 --headed --slowMo 120   # watch it live
+node bin/qa-supreme.mjs here                              # detects the project, starts it, tests it, stops it
+node bin/qa-supreme.mjs run --url https://app.example.com # full pipeline against a running app
+node bin/qa-supreme.mjs watch --url http://localhost:3000 # real window, slowed down, video recorded
 ```
+
+`here` reads the project in the current directory — Next, Vite, CRA, Nuxt, Astro, Remix, Angular,
+Django, Rails, Laravel, or a plain static folder — starts it on its own port, waits for it to
+answer, runs the pipeline and shuts it down. That is what makes this usable on any project
+without configuring anything first.
 
 The on-screen HUD counts every click as it happens, flashes the element being hit, and shows
 queue depth and error count — so a human watching, a screenshot, or a recorded video all
@@ -53,14 +58,32 @@ every remaining state into the login page.
 | `clicks performed` | interactions actually executed | the coverage number nobody else reports |
 | `states discovered` | distinct UI states reached | compare against the sitemap — gaps are unreachable UI |
 | `transitions mapped` | control → destination edges | the app's real navigation graph |
-| `no-op` controls | click produced no observable change | **candidate dead buttons — triage every one** |
+| **button verdicts** | every control judged, not just counted | the list of what is broken and what is dead |
 | `click errors` | control refused a click in 4s | overlay traps, disabled-but-visible, z-index bugs |
 | `guarded skips` | destructive and session-ending controls not clicked | verify the guard list matches your app |
 | `clicks that needed a retry` | control was transiently covered | a rising number means overlay/timing problems |
 
+## The button report
+
+Every control gets one verdict, decided from what the click actually caused:
+
+| Verdict | What happened | What it means |
+|---|---|---|
+| `works` | navigation, new tab, reload, or a visible change | fine |
+| `network only` | nothing visible, but a request went out | probably fine — confirm the effect is real |
+| `dead` | no visible change, no request, no error | **nobody wired this control** |
+| `suspect` | a console error or a failed request | wired, but something under it is failing |
+| `broken` | an uncaught exception or a 5xx | **a defect, with the exception as evidence** |
+| `unclickable` | refused a click twice from a clean state | an overlay traps it, or it is disabled but looks enabled |
+
+Effects are attributed to a control **only when it owns them**: errors thrown while a new page
+loads belong to that page, not to the link that led there. Blaming the link is exactly the false
+positive this repository exists to hunt, so navigations are judged by what they reached, not by
+what the destination logged.
+
 ## Triaging dead buttons
 
-A `no-op` is not automatically a bug — it may be a no-change tab, an already-active state, or
+A `dead` verdict is not automatically a bug — it may be a no-change tab, an already-active state, or
 a control whose effect is server-side only. For each one, answer: *what should a user expect
 to happen?* If the answer is "something", you found a defect before any user did. Record the
 confirmed ones as bugs, and add the rest to `denySelectors` so the next run stays signal.

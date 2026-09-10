@@ -40,6 +40,8 @@ Read the request, pick the entry skill, then follow the chain. Never run all ski
 
 | The user says | Entry skill | Then |
 |---|---|---|
+| "nothing can break in production" / before any release on a live system | **`never-break-prod`** | it runs the other skills as gates |
+| "check every button" / "is everything working" | `autonomous-exploration` | `bug-repro` for each broken control |
 | "we have no tests" / "where do I start" | `risk-map` | `test-strategy` → authoring skills |
 | "test this feature / PR / diff" | `risk-map` (scoped to diff) | authoring skills → `mutation-proof` |
 | "write unit tests" | `unit-test-authoring` | `mutation-proof` |
@@ -67,6 +69,11 @@ Read the request, pick the entry skill, then follow the chain. Never run all ski
 | "what if the payment provider is down" | `chaos-resilience` | `state-machine-testing` |
 | services deployed independently | `contract-testing-pact` | — |
 | a status field / wizard / lifecycle | `state-machine-testing` | `api-contract-testing` |
+| money, checkout, refunds, plans | `payment-testing` | `state-machine-testing` |
+| schema, migrations, RLS, queries | `database-testing` | `security-regression` |
+| pixels, GA4, conversions, attribution | `tracking-testing` | — |
+| signup mail, resets, receipts, invites | `transactional-email-testing` | — |
+| "it worked in staging" / config drift | `environment-parity` | `smoke-and-sanity` |
 | anything ambiguous | `qa-triage` | it decides |
 
 ## The runner
@@ -76,9 +83,15 @@ the target is a running web app — it produces the evidence this agent is requi
 
 ```bash
 cd runner && npm install
-node bin/qa-supreme.mjs run   --url http://localhost:3000        # 8 stages, HTML report, exit 1 on NO-SHIP
-node bin/qa-supreme.mjs crawl --url http://localhost:3000 --headed --slowMo 120
+node bin/qa-supreme.mjs here                                  # detect this project, start it, test it, stop it
+node bin/qa-supreme.mjs run   --url http://localhost:3000     # 8 stages, HTML report, exit 1 on NO-SHIP
+node bin/qa-supreme.mjs watch --url http://localhost:3000     # a real window, slowed down, so a human can watch
 ```
+
+The run is **visible by default** in a terminal and headless in CI. Every click prints a line
+saying what it did, and every control gets a verdict: `works`, `network only`, `dead`, `suspect`,
+`broken`, `unclickable`. Report the broken and dead ones by name — that list is the reason to
+click everything in the first place.
 
 If the target is behind a login, authenticate first — otherwise every stage reports on a login
 page: `node bin/qa-supreme.mjs login --url <app> --login-url <login page> --user <u> --pass <p>`,

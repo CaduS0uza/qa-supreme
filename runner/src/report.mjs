@@ -17,6 +17,7 @@ export function writeReport(run, cfg) {
 
   const clicksRows = (S.crawl?.data?.clicks || []).map(c => `
     <tr><td>${c.n}</td><td>${esc(c.node)}</td><td>${esc(c.role)}</td><td>${esc(c.name)}</td>
+    <td class="v-${esc(c.verdict || '').replace(/[^a-z-]/g, '')}">${esc(c.verdict || '')}</td>
     <td class="o-${esc(c.outcome).replace(/[^a-z-]/g, '')}">${esc(c.outcome)}</td><td class="muted">${esc(c.opened || '')}</td></tr>`).join('')
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -40,6 +41,13 @@ h1{margin:0 0 4px;font-size:22px;letter-spacing:.02em}h3{margin:0 0 6px;font-siz
 .muted{color:var(--muted)}table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px;display:block;overflow-x:auto}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:340px;overflow:hidden;text-overflow:ellipsis}
 th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--card)}
+.btiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:10px;margin:6px 0 12px}
+.btile{background:#0e1730;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.btile b{display:block;font-size:22px;line-height:1.2}
+.btile span{font-size:11px;color:var(--muted)}
+.btile.ok b{color:var(--ok)}.btile.warn b{color:var(--warn)}.btile.bad b{color:var(--fail)}
+.v-broken,.v-unclickable{color:var(--fail);font-weight:600}.v-suspect{color:var(--warn)}
+.v-dead{color:var(--muted)}.v-works,.v-works-silently{color:var(--ok)}
 .o-navigation{color:#7dd3fc}.o-new-tab{color:#c4b5fd}.o-in-place-change{color:#4ade80}.o-no-op{color:var(--muted)}.o-error{color:var(--fail)}
 .scroll{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px}
 .graphwrap{overflow-x:auto;padding:6px 0}
@@ -72,8 +80,9 @@ img{max-width:100%;border-radius:8px;border:1px solid var(--line)}
 <section class="card"><h3>State graph — what the crawler reached, and how</h3>
 ${renderGraph(run, esc)}</section>
 ${Object.entries(run.stages).map(([n, r]) => stageCard(n, r)).join('')}
+${renderButtons(run, esc)}
 <section class="card"><h3>Click ledger — every interaction, in order</h3>
-<div class="scroll"><table><thead><tr><th>#</th><th>state</th><th>role</th><th>label</th><th>outcome</th><th>led to</th></tr></thead>
+<div class="scroll"><table><thead><tr><th>#</th><th>state</th><th>role</th><th>label</th><th>verdict</th><th>outcome</th><th>led to</th></tr></thead>
 <tbody>${clicksRows || '<tr><td colspan="6" class="muted">no crawl data</td></tr>'}</tbody></table></div></section>
 </div>
 <script>
@@ -101,6 +110,38 @@ document.querySelectorAll('.node').forEach(g => {
 
 // The state graph as inline SVG: nodes by crawl depth, edges labelled with the control that
 // caused the transition. No library, no CDN — the report must open from a file:// URL forever.
+// Every control the crawler touched, judged. This is the difference between counting clicks
+// and testing buttons.
+function renderButtons(run, esc) {
+  const clicks = run.stages?.crawl?.data?.clicks || []
+  if (!clicks.length) return ''
+  const b = run.stages.crawl.data.buttons || {}
+  const problems = clicks.filter(c => ['broken', 'suspect', 'dead', 'unclickable'].includes(c.verdict))
+  const why = (e) => [
+    e?.threw && `${e.threw} uncaught exception`,
+    e?.server5xx && `${e.server5xx} server error`,
+    e?.failed4xx && `${e.failed4xx} failed request`,
+    e?.consoleErrors && `${e.consoleErrors} console error`,
+    e?.requests ? `${e.requests} request(s) sent` : null
+  ].filter(Boolean).join(', ') || 'no observable effect'
+
+  const tiles = [
+    ['works', b.works || 0, 'ok'],
+    ['network only', b.worksSilently || 0, 'ok'],
+    ['dead', b.dead || 0, 'warn'],
+    ['suspect', b.suspect || 0, 'warn'],
+    ['broken', b.broken || 0, 'bad'],
+    ['unclickable', b.unclickable || 0, 'bad']
+  ].map(([k, v, tone]) => `<div class="btile ${tone}"><b>${v}</b><span>${k}</span></div>`).join('')
+
+  return `<section class="card"><h3>Button report — does every control actually do something?</h3>
+    <div class="btiles">${tiles}</div>
+    ${problems.length ? `<div class="scroll"><table><thead><tr><th>verdict</th><th>control</th><th>state</th><th>evidence</th></tr></thead><tbody>
+      ${problems.map(c => `<tr><td class="v-${esc(c.verdict)}">${esc(c.verdict)}</td><td>${esc(c.name)}</td><td class="muted">${esc(c.node)}</td><td class="muted">${esc(why(c.effect))}</td></tr>`).join('')}
+    </tbody></table></div>` : '<p class="muted">every control produced an observable effect</p>'}
+  </section>`
+}
+
 function renderGraph(run, esc) {
   const nodes = run.stages?.crawl?.data?.graph?.nodes || []
   const edges = run.stages?.crawl?.data?.graph?.edges || []
@@ -132,7 +173,7 @@ function renderGraph(run, esc) {
   const width = Math.max(...[...pos.values()].map(p => p.x), 0) + W + PADX
   const top = -36   // headroom for the self-loop arcs over the first row
 
-  const KIND = { navigation: '#7dd3fc', 'new-tab': '#c4b5fd', 'in-place-change': '#4ade80' }
+  const KIND = { navigation: '#7dd3fc', 'new-tab': '#c4b5fd', 'in-place-change': '#4ade80', reload: '#7dd3fc' }
   const seen = new Set()
   const paths = edges.map(e => {
     const from = pos.get(e.from)
