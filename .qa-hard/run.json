@@ -1,0 +1,342 @@
+{
+  "url": "http://localhost:8099/hard.html",
+  "startedAt": "2026-09-10T14:09:51.630Z",
+  "finishedAt": "2026-09-10T14:10:26.430Z",
+  "durationMs": 34800,
+  "aborted": null,
+  "stages": {
+    "crawl": {
+      "status": "fail",
+      "summary": "13 clicks · 1 states · 0 broken · 3 dead",
+      "data": {
+        "graph": {
+          "nodes": [
+            {
+              "id": "n1",
+              "url": "http://localhost:8099/hard.html",
+              "title": "Hard cases — QA Supreme fixture",
+              "depth": 0,
+              "interactive": 11
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "via": "Storefront",
+              "to": "http://localhost:8099/index.html",
+              "kind": "navigation"
+            },
+            {
+              "from": "n1",
+              "via": "Reports",
+              "to": "http://localhost:8099/hard.html#/reports",
+              "kind": "navigation"
+            },
+            {
+              "from": "n1",
+              "via": "Settings",
+              "to": "http://localhost:8099/hard.html#/settings",
+              "kind": "navigation"
+            },
+            {
+              "from": "n1",
+              "via": "Team",
+              "to": "http://localhost:8099/hard.html#/team",
+              "kind": "navigation"
+            },
+            {
+              "from": "n1",
+              "via": "Inside shadow DOM",
+              "to": "state:-628034324|-1306194604",
+              "kind": "in-place-change"
+            },
+            {
+              "from": "n1",
+              "via": "Account ▾",
+              "to": "state:-628034324|-1306194604",
+              "kind": "in-place-change"
+            },
+            {
+              "from": "n1",
+              "via": "Frame button",
+              "to": "state:1420123974|-1560931149",
+              "kind": "in-place-change"
+            },
+            {
+              "from": "n1",
+              "via": "Lazy button A",
+              "to": "state:-982406438|-1306194604",
+              "kind": "in-place-change"
+            },
+            {
+              "from": "n1",
+              "via": "Profile",
+              "to": "state:-910983142|-1306194604",
+              "kind": "in-place-change"
+            }
+          ]
+        },
+        "clicks": [
+          {
+            "n": 1,
+            "node": "n1",
+            "role": "a",
+            "name": "Storefront",
+            "selector": "html > body > header > a",
+            "outcome": "navigation",
+            "opened": "http://localhost:8099/index.html",
+            "verdict": "works",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 2,
+              "server5xx": 0,
+              "failed4xx": 2,
+              "requests": 2
+            }
+          },
+          {
+            "n": 2,
+            "node": "n1",
+            "role": "a",
+            "name": "Reports",
+            "selector": "html > body > main > div:nth-of-type(1) > a:nth-of-type(1)",
+            "outcome": "navigation",
+            "opened": "http://localhost:8099/hard.html#/reports",
+            "verdict": "works",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          },
+          {
+            "n": 3,
+            "node": "n1",
+            "role": "a",
+            "name": "Settings",
+            "selector": "html > body > main > div:nth-of-type(1) > a:nth-of-type(2)",
+            "outcome": "navigation",
+            "opened": "http://localhost:8099/hard.html#/settings",
+            "verdict": "works",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          },
+          {
+            "n": 4,
+            "node": "n1",
+            "role": "a",
+            "name": "Team",
+            "selector": "html > body > main > div:nth-of-type(1) > a:nth-of-type(3)",
+            "outcome": "navigation",
+            "opened": "http://localhost:8099/hard.html#/team",
+            "verdict": "works",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          },
+          {
+            "n": 5,
+            "node": "n1",
+            "role": "button",
+            "name": "Inside shadow DOM",
+            "selector": "html > body > main > div:nth-of-type(2) > my-widget >> #shadow-a",
+            "shadow": true,
+            "outcome": "in-place-change",
+            "opened": "state:-628034324|-1306194604",
+            "verdict": "works",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          },
+          {
+            "n": 6,
+            "node": "n1",
+            "role": "button",
+            "name": "Shadow action",
+            "selector": "html > body > main > div:nth-of-type(2) > my-widget >> #shadow-b",
+            "shadow": true,
+            "outcome": "no-op",
+            "opened": null,
+            "verdict": "dead",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          },
+          {
+            "n": 7,
+            "node": "n1",
+            "role": "button",
+            "name": "Account ▾",
+            "selector": "#menu-trigger",
+            "outcome": "in-place-change",
+            "opened": "state:-628034324|-1306194604",
+            "verdict": "works",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          },
+          {
+            "n": 8,
+            "node": "n1",
+            "role": "button",
+            "name": "Covered button",
+            "selector": "#covered",
+            "outcome": "error",
+            "opened": null,
+            "verdict": "unclickable",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 4
+            },
+            "covered": "covered by <div#overlay>"
+          },
+          {
+            "n": 9,
+            "node": "n1",
+            "role": "button",
+            "name": "Frame button",
+            "selector": "#frame-a",
+            "frame": "iframe:nth-of-type(1)",
+            "outcome": "in-place-change",
+            "opened": "state:1420123974|-1560931149",
+            "verdict": "works",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          },
+          {
+            "n": 10,
+            "node": "n1",
+            "role": "button",
+            "name": "Lazy button A",
+            "selector": "#lazy-a",
+            "outcome": "in-place-change",
+            "opened": "state:-982406438|-1306194604",
+            "verdict": "works",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          },
+          {
+            "n": 11,
+            "node": "n1",
+            "role": "button",
+            "name": "Lazy button B",
+            "selector": "#lazy-b",
+            "outcome": "no-op",
+            "opened": null,
+            "verdict": "dead",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          },
+          {
+            "n": 12,
+            "node": "n1",
+            "role": "button",
+            "name": "Profile",
+            "selector": "#m-profile",
+            "outcome": "in-place-change",
+            "opened": "state:-910983142|-1306194604",
+            "verdict": "works",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          },
+          {
+            "n": 13,
+            "node": "n1",
+            "role": "button",
+            "name": "Billing",
+            "selector": "#m-billing",
+            "outcome": "no-op",
+            "opened": null,
+            "verdict": "dead",
+            "effect": {
+              "threw": 0,
+              "consoleErrors": 0,
+              "server5xx": 0,
+              "failed4xx": 0,
+              "requests": 0
+            }
+          }
+        ],
+        "skipped": [],
+        "errors": [
+          {
+            "kind": "click",
+            "node": "n1",
+            "element": "Covered button",
+            "message": "locator.click: Timeout 4000ms exceeded.",
+            "covered": "covered by <div#overlay>"
+          }
+        ],
+        "totalClicks": 13,
+        "deadControls": 3,
+        "guardedSkips": 0,
+        "retried": 1,
+        "buttons": {
+          "works": 9,
+          "worksSilently": 0,
+          "dead": 3,
+          "suspect": 0,
+          "broken": 0,
+          "unclickable": 1
+        }
+      }
+    }
+  },
+  "verdict": {
+    "decision": "NO-SHIP",
+    "reason": "failing stages: crawl"
+  },
+  "totals": {
+    "clicks": 13,
+    "states": 1,
+    "transitions": 9,
+    "guardedSkips": 0,
+    "deadControls": 3
+  }
+}

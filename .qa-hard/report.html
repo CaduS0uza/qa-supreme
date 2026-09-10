@@ -1,0 +1,164 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QA Supreme — http://localhost:8099/hard.html</title><style>
+:root{--bg:#0b1020;--card:#141c33;--ink:#e8f0ff;--muted:#93a3c4;--line:#26314f;--ok:#4ade80;--warn:#fbbf24;--fail:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:28px 24px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#111a35,#0b1020)}
+h1{margin:0 0 4px;font-size:22px;letter-spacing:.02em}h3{margin:0 0 6px;font-size:15px}h3.stage{text-transform:capitalize}
+.wrap{max-width:1120px;margin:0 auto;padding:24px}
+.verdict{display:inline-block;padding:6px 14px;border-radius:999px;font-weight:700;letter-spacing:.06em}
+.SHIP{background:rgba(74,222,128,.15);color:var(--ok);border:1px solid var(--ok)}
+.NO-SHIP{background:rgba(248,113,113,.15);color:var(--fail);border:1px solid var(--fail)}
+.DEBT{background:rgba(251,191,36,.15);color:var(--warn);border:1px solid var(--warn)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.kpi b{display:block;font-size:26px;line-height:1.2}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.b{font-size:10px;padding:2px 8px;border-radius:999px;vertical-align:middle;letter-spacing:.08em}
+.b.pass{background:rgba(74,222,128,.15);color:var(--ok)}.b.warn{background:rgba(251,191,36,.15);color:var(--warn)}.b.fail{background:rgba(248,113,113,.15);color:var(--fail)}
+.muted{color:var(--muted)}table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px;display:block;overflow-x:auto}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:340px;overflow:hidden;text-overflow:ellipsis}
+th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--card)}
+.btiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:10px;margin:6px 0 12px}
+.btile{background:#0e1730;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.btile b{display:block;font-size:22px;line-height:1.2}
+.btile span{font-size:11px;color:var(--muted)}
+.btile.ok b{color:var(--ok)}.btile.warn b{color:var(--warn)}.btile.bad b{color:var(--fail)}
+.v-broken,.v-unclickable{color:var(--fail);font-weight:600}.v-suspect{color:var(--warn)}
+.v-dead{color:var(--muted)}.v-works,.v-works-silently{color:var(--ok)}
+.o-navigation{color:#7dd3fc}.o-new-tab{color:#c4b5fd}.o-in-place-change{color:#4ade80}.o-no-op{color:var(--muted)}.o-error{color:var(--fail)}
+.scroll{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.graphwrap{overflow-x:auto;padding:6px 0}
+.node rect{fill:#1b2643;stroke:#3a4a75;stroke-width:1.5;cursor:pointer;transition:fill .15s,stroke .15s}
+.node:hover rect,.node:focus rect{fill:#24325a;stroke:#7dd3fc;outline:none}
+.node rect.ext{fill:#171d30;stroke-dasharray:4 3}
+.nt{fill:#e8f0ff;font:600 12px ui-monospace,Menlo,monospace;pointer-events:none}
+.ns{fill:#93a3c4;font:11px ui-sans-serif,system-ui;pointer-events:none}
+.edge{stroke-width:1.6;opacity:.75}.edge:hover{opacity:1;stroke-width:2.6}
+.edge.back{opacity:.45;stroke-dasharray:5 4}.edge.back:hover{opacity:1}
+.legend{display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:8px 2px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+#shot{margin-top:10px}#shot img{max-height:460px;display:block}
+img{max-width:100%;border-radius:8px;border:1px solid var(--line)}
+</style></head><body>
+<header><div class="wrap" style="padding:0">
+<h1>QA Supreme</h1>
+<p class="muted">http://localhost:8099/hard.html · 9/10/2026, 11:09:51 AM · 34.8s</p>
+<p><span class="verdict NO-SHIP">NO-SHIP</span>
+<span class="muted"> — failing stages: crawl</span></p>
+</div></header>
+<div class="wrap">
+<div class="grid">
+  <div class="kpi"><b>13</b><span class="muted">clicks performed</span></div>
+  <div class="kpi"><b>1</b><span class="muted">states discovered</span></div>
+  <div class="kpi"><b>9</b><span class="muted">transitions mapped</span></div>
+  <div class="kpi"><b>0</b><span class="muted">guarded skips</span></div>
+  <div class="kpi"><b>0/1</b><span class="muted">stages green</span></div>
+</div>
+<section class="card"><h3>State graph — what the crawler reached, and how</h3>
+<div class="graphwrap">
+    <svg viewBox="0 -36 638 528" width="100%" style="min-width:638px">
+      <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#93a3c4"/></marker></defs>
+      <path class="edge" d="M286 82 C319 82, 319 82, 344 82" stroke="#7dd3fc" fill="none" marker-end="url(#a)"><title>Storefront — navigation</title></path><path class="edge" d="M286 82 C319 82, 319 178, 344 178" stroke="#7dd3fc" fill="none" marker-end="url(#a)"><title>Reports — navigation</title></path><path class="edge" d="M286 82 C319 82, 319 274, 344 274" stroke="#7dd3fc" fill="none" marker-end="url(#a)"><title>Settings — navigation</title></path><path class="edge" d="M286 82 C319 82, 319 370, 344 370" stroke="#7dd3fc" fill="none" marker-end="url(#a)"><title>Team — navigation</title></path><path class="edge" d="M162 56 C166 26, 210 26, 206 54" stroke="#4ade80" fill="none" marker-end="url(#a)"><title>Inside shadow DOM — in-place change</title></path><g class="node" data-shot="screenshots/n1.png" data-url="http://localhost:8099/hard.html" tabindex="0">
+      <rect x="90" y="56" width="196" height="52" rx="9" class=""/>
+      <text x="102" y="77" class="nt">n1 · Hard cases — QA Su…</text>
+      <text x="102" y="94" class="ns">11 controls · depth 0</text>
+      <title>http://localhost:8099/hard.html</title></g><g class="node" data-shot="screenshots/x1.png" data-url="http://localhost:8099/index.html" tabindex="0">
+      <rect x="352" y="56" width="196" height="52" rx="9" class="ext"/>
+      <text x="364" y="77" class="nt">x1 · external</text>
+      <text x="364" y="94" class="ns">localhost:8099</text>
+      <title>http://localhost:8099/index.html</title></g><g class="node" data-shot="screenshots/x2.png" data-url="http://localhost:8099/hard.html#/reports" tabindex="0">
+      <rect x="352" y="152" width="196" height="52" rx="9" class="ext"/>
+      <text x="364" y="173" class="nt">x2 · external</text>
+      <text x="364" y="190" class="ns">localhost:8099</text>
+      <title>http://localhost:8099/hard.html#/reports</title></g><g class="node" data-shot="screenshots/x3.png" data-url="http://localhost:8099/hard.html#/settings" tabindex="0">
+      <rect x="352" y="248" width="196" height="52" rx="9" class="ext"/>
+      <text x="364" y="269" class="nt">x3 · external</text>
+      <text x="364" y="286" class="ns">localhost:8099</text>
+      <title>http://localhost:8099/hard.html#/settings</title></g><g class="node" data-shot="screenshots/x4.png" data-url="http://localhost:8099/hard.html#/team" tabindex="0">
+      <rect x="352" y="344" width="196" height="52" rx="9" class="ext"/>
+      <text x="364" y="365" class="nt">x4 · external</text>
+      <text x="364" y="382" class="ns">localhost:8099</text>
+      <title>http://localhost:8099/hard.html#/team</title></g>
+    </svg>
+    <div class="legend">
+      <span><i style="background:#7dd3fc"></i>navigation</span>
+      <span><i style="background:#c4b5fd"></i>new tab</span>
+      <span><i style="background:#4ade80"></i>in-place change</span>
+      <span class="muted">click a state to see its screenshot</span>
+    </div>
+    <div id="shot" hidden><img id="shotimg" alt="state screenshot"><div class="muted" id="shoturl"></div></div>
+  </div></section>
+
+    <section class="card">
+      <h3 class="stage">crawl <span class="b fail">FAIL</span></h3>
+      <p class="muted">13 clicks · 1 states · 0 broken · 3 dead</p>
+      <div class="scroll"><table><thead><tr><th>state</th><th>url</th><th>interactive</th><th>depth</th></tr></thead><tbody><tr><td>n1</td><td>http://localhost:8099/hard.html</td><td>11</td><td>0</td></tr></tbody></table></div>
+    </section>
+<section class="card"><h3>Button report — does every control actually do something?</h3>
+    <div class="btiles"><div class="btile ok"><b>9</b><span>works</span></div><div class="btile ok"><b>0</b><span>network only</span></div><div class="btile warn"><b>3</b><span>dead</span></div><div class="btile warn"><b>0</b><span>suspect</span></div><div class="btile bad"><b>0</b><span>broken</span></div><div class="btile bad"><b>1</b><span>unclickable</span></div></div>
+    <div class="scroll"><table><thead><tr><th>verdict</th><th>control</th><th>state</th><th>evidence</th></tr></thead><tbody>
+      <tr><td class="v-dead">dead</td><td>Shadow action</td><td class="muted">n1</td><td class="muted">no observable effect</td></tr><tr><td class="v-unclickable">unclickable</td><td>Covered button</td><td class="muted">n1</td><td class="muted">4 request(s) sent</td></tr><tr><td class="v-dead">dead</td><td>Lazy button B</td><td class="muted">n1</td><td class="muted">no observable effect</td></tr><tr><td class="v-dead">dead</td><td>Billing</td><td class="muted">n1</td><td class="muted">no observable effect</td></tr>
+    </tbody></table></div>
+  </section>
+<section class="card"><h3>Click ledger — every interaction, in order</h3>
+<div class="scroll"><table><thead><tr><th>#</th><th>state</th><th>role</th><th>label</th><th>verdict</th><th>outcome</th><th>led to</th></tr></thead>
+<tbody>
+    <tr><td>1</td><td>n1</td><td>a</td><td>Storefront</td>
+    <td class="v-works">works</td>
+    <td class="o-navigation">navigation</td><td class="muted">http://localhost:8099/index.html</td></tr>
+    <tr><td>2</td><td>n1</td><td>a</td><td>Reports</td>
+    <td class="v-works">works</td>
+    <td class="o-navigation">navigation</td><td class="muted">http://localhost:8099/hard.html#/reports</td></tr>
+    <tr><td>3</td><td>n1</td><td>a</td><td>Settings</td>
+    <td class="v-works">works</td>
+    <td class="o-navigation">navigation</td><td class="muted">http://localhost:8099/hard.html#/settings</td></tr>
+    <tr><td>4</td><td>n1</td><td>a</td><td>Team</td>
+    <td class="v-works">works</td>
+    <td class="o-navigation">navigation</td><td class="muted">http://localhost:8099/hard.html#/team</td></tr>
+    <tr><td>5</td><td>n1</td><td>button</td><td>Inside shadow DOM</td>
+    <td class="v-works">works</td>
+    <td class="o-in-place-change">in-place-change</td><td class="muted">state:-628034324|-1306194604</td></tr>
+    <tr><td>6</td><td>n1</td><td>button</td><td>Shadow action</td>
+    <td class="v-dead">dead</td>
+    <td class="o-no-op">no-op</td><td class="muted"></td></tr>
+    <tr><td>7</td><td>n1</td><td>button</td><td>Account ▾</td>
+    <td class="v-works">works</td>
+    <td class="o-in-place-change">in-place-change</td><td class="muted">state:-628034324|-1306194604</td></tr>
+    <tr><td>8</td><td>n1</td><td>button</td><td>Covered button</td>
+    <td class="v-unclickable">unclickable</td>
+    <td class="o-error">error</td><td class="muted"></td></tr>
+    <tr><td>9</td><td>n1</td><td>button</td><td>Frame button</td>
+    <td class="v-works">works</td>
+    <td class="o-in-place-change">in-place-change</td><td class="muted">state:1420123974|-1560931149</td></tr>
+    <tr><td>10</td><td>n1</td><td>button</td><td>Lazy button A</td>
+    <td class="v-works">works</td>
+    <td class="o-in-place-change">in-place-change</td><td class="muted">state:-982406438|-1306194604</td></tr>
+    <tr><td>11</td><td>n1</td><td>button</td><td>Lazy button B</td>
+    <td class="v-dead">dead</td>
+    <td class="o-no-op">no-op</td><td class="muted"></td></tr>
+    <tr><td>12</td><td>n1</td><td>button</td><td>Profile</td>
+    <td class="v-works">works</td>
+    <td class="o-in-place-change">in-place-change</td><td class="muted">state:-910983142|-1306194604</td></tr>
+    <tr><td>13</td><td>n1</td><td>button</td><td>Billing</td>
+    <td class="v-dead">dead</td>
+    <td class="o-no-op">no-op</td><td class="muted"></td></tr></tbody></table></div></section>
+</div>
+<script>
+// Click a state to see exactly what the crawler saw there.
+document.querySelectorAll('.node').forEach(g => {
+  const show = () => {
+    const box = document.getElementById('shot')
+    const img = document.getElementById('shotimg')
+    img.src = g.dataset.shot
+    img.onerror = () => { box.hidden = true }
+    document.getElementById('shoturl').textContent = g.dataset.url
+    box.hidden = false
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }
+  g.addEventListener('click', show)
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show() } })
+})
+</script>
+</body></html>

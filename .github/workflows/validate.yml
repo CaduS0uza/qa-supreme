@@ -43,6 +43,13 @@ jobs:
 
       # The fixture is deliberately defective, so every run here exits 1 on its NO-SHIP
       # verdict — that is the product working. The assertions live in the eval steps below.
+      - name: Run against the hard fixture
+        working-directory: runner
+        run: node bin/qa-supreme.mjs crawl --url http://localhost:8099/hard.html --out ../.qa-hard --quiet --maxPages 1 || true
+
+      - name: Assert the hard cases are still handled
+        run: node evals/assert-hard-cases.mjs .qa-hard/run.json
+
       - name: Run against the protected area without credentials
         working-directory: runner
         run: node bin/qa-supreme.mjs run --url http://localhost:8099/dashboard.html --out ../.qa-unauth || true
@@ -63,4 +70,5 @@ jobs:
           path: |
             .qa-out/
             .qa-auth/
+            .qa-hard/
           retention-days: 7

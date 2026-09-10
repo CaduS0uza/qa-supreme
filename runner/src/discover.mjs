@@ -1,6 +1,6 @@
 // Interactive-element discovery. Runs in the page, returns a stable descriptor per element
 // so the crawler can address it later even after a re-render.
-export const DISCOVER = `((scopeSel) => {
+const DISCOVER_FN = `((scopeSel) => {
   const SEL = [
     'a[href]', 'button', 'input[type=submit]', 'input[type=button]', 'summary',
     '[role=button]', '[role=link]', '[role=tab]', '[role=menuitem]', '[role=option]',
@@ -88,7 +88,10 @@ export const DISCOVER = `((scopeSel) => {
     })
   })
   return out
-})()`
+})`
+
+/** Builds the expression to evaluate, with the scope selector baked in. */
+export const discoverExpr = (scope) => `${DISCOVER_FN}(${JSON.stringify(scope || null)})`
 
 // A cheap fingerprint of the current UI state: url + the shape of the interactive surface.
 export const STATE_HASH = `(() => {

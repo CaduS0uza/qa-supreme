@@ -81,6 +81,37 @@ loads belong to that page, not to the link that led there. Blaming the link is e
 positive this repository exists to hunt, so navigations are judged by what they reached, not by
 what the destination logged.
 
+## What it can see (and what it still cannot)
+
+Before listing controls, the runner puts the page into the state a user would actually find:
+the consent banner is dismissed (recorded, never counted as a test click), the page is scrolled
+to the bottom so lazy and virtualised content exists, it waits for the page to stop changing,
+and hover menus are opened. Then it discovers **through** the places a naive crawler stops:
+
+| Obstacle | How it is handled |
+|---|---|
+| Consent / cookie wall | dismissed first, so it cannot swallow every click |
+| Content below the fold, infinite scroll, `IntersectionObserver` | scrolled through in steps, and controls found this way are marked as needing that scroll to be reachable again |
+| Shadow DOM (web components, design systems) | open shadow roots are walked; the selector pierces them |
+| Same-origin iframes | frames are discovered and clicked through a frame locator |
+| Hash routing (`#/reports`) | the hash is part of the address and of the state, so three routes are three screens |
+| Hover-only menus | triggers are hovered before discovery; their items carry that requirement |
+| A control covered by an overlay | reported as `unclickable`, naming what sits on top of it |
+| Something still loading | it waits for the page to settle, then **sweeps again** — controls that appear late are clicked too |
+
+Still out of reach, and honest about it: canvas and WebGL surfaces with no DOM behind them,
+drag-and-drop, cross-origin iframes, native OS dialogs, and anything gated behind a captcha.
+
+## Reading only one part of the app
+
+```bash
+node bin/qa-supreme.mjs crawl --url http://localhost:3000 --only "#settings-panel"
+```
+
+`--only <css>` limits discovery to one region — a tab panel, a drawer, the screen you just
+built. Everything else on the page is ignored, so the report is about your change and nothing
+else. Frames are skipped while a scope is set, because a scope belongs to the host document.
+
 ## Triaging dead buttons
 
 A `dead` verdict is not automatically a bug — it may be a no-change tab, an already-active state, or

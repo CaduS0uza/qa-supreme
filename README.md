@@ -99,6 +99,27 @@ when the markup is unusual. Without credentials the pipeline **says so and stops
 `authentication: target is behind a login` — instead of reporting an empty product. While a
 session is active it also refuses to click its way out of it.
 
+### It sees what naive crawlers miss
+
+Before listing anything, it dismisses the consent banner, scrolls to the bottom so lazy content
+exists, waits for the page to stop changing, and opens hover menus. Then it discovers **through**
+shadow DOM, same-origin iframes and hash routes — and after clicking, it sweeps again, because
+controls that arrive late are still controls.
+
+| Obstacle | Handled |
+|---|---|
+| Cookie / consent wall | dismissed first, never counted as a click |
+| Lazy content, infinite scroll, `IntersectionObserver` | scrolled through, and re-reached on revisit |
+| Shadow DOM — web components, design systems | walked and pierced |
+| Same-origin iframes | discovered and clicked through a frame locator |
+| Hash routing `#/reports` | three routes are three screens, not one |
+| Hover-only menus | hovered open, items carry that requirement |
+| A control under an overlay | `unclickable`, naming what covers it |
+| Still loading | waits for it to settle, then sweeps again |
+
+Scope it when you only care about one part: `--only "#settings-panel"` explores that region and
+nothing else — one tab, one drawer, the screen you just built.
+
 ### Every button, judged — not just clicked
 
 The crawler decides what each control actually did, and attributes the effect only when the
@@ -306,7 +327,10 @@ If evidence is impossible, say so and downgrade the claim. Never upgrade a claim
 
 `examples/demo-app/` is a fixture with deliberately seeded defects: a missing `alt`, a button
 that throws, dead buttons, a destructive control, a modal, tab panels, a form with weak
-validation. It also ships a real auth wall: `login.html` guards `dashboard.html` and `billing.html`.
+validation. It also ships a real auth wall (`login.html` guards `dashboard.html` and `billing.html`) and a
+hard fixture (`hard.html`) carrying every case that blinds a crawler: a consent banner, a web
+component with shadow DOM, an iframe, hash routes, a hover-only menu, a control under a
+transparent overlay, and buttons that only exist after scrolling.
 
 CI runs the full pipeline against both halves and asserts, in
 [`evals/assert-demo-findings.mjs`](evals/assert-demo-findings.mjs) and
@@ -315,7 +339,8 @@ is still found — including that the crawler produces **zero** click errors, ne
 HUD, never clicks its way out of a session, and reaches pages that only exist behind the login.
 
 ```
-21/21 expectations met          # the public app: clicks, modal, tabs, dead buttons, a11y, security
+25/25 expectations met          # the public app: clicks, modal, tabs, button verdicts, a11y, security
+15/15 hard-case expectations    # shadow DOM, iframe, hash routes, hover menu, lazy content, overlay
 8/8 auth expectations met       # the protected area: wall detected, login works, private pages reached
 ```
 

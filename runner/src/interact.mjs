@@ -157,8 +157,8 @@ export async function whatCovers(page, selector) {
   } catch { return 'could not determine' }
 }
 
-export function logPrep({ consent, grew, revealed }) {
+export function logPrep({ consent, grew, revealed, scrollOnly }) {
   if (consent) log.step(`consent banner dismissed ("${consent}") — not counted as a click`)
-  if (grew) log.step('scrolled to the bottom — more content loaded on the way')
+  if (grew) log.step(`scrolled to the bottom${scrollOnly ? ` — ${scrollOnly} control(s) only exist after scrolling` : ' — more content loaded on the way'}`)
   if (revealed?.length) log.step(`${revealed.length} hover menu(s) opened to reveal their items`)
 }

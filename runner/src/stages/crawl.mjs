@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { log } from '../logger.mjs'
-import { DISCOVER, STATE_HASH } from '../discover.mjs'
+import { discoverExpr, STATE_HASH } from '../discover.mjs'
 import { t } from '../i18n.mjs'
 import { dismissConsent, settle, scrollThrough, hoverReveal, whatCovers, logPrep } from '../interact.mjs'
 
@@ -38,7 +38,7 @@ async function discoverAll(page, cfg) {
       found.push({ ...el, frameSel })
     }
   }
-  push(await page.evaluate(DISCOVER, cfg.only || null).catch(() => []), null)
+  push(await page.evaluate(discoverExpr(cfg.only)).catch(() => []), null)
 
   // Frames: an embedded checkout or editor is part of the product, not someone else's problem.
   const frames = page.frames().filter(f => f !== page.mainFrame())
@@ -53,7 +53,8 @@ async function discoverAll(page, cfg) {
         return `iframe:nth-of-type(${all.indexOf(n) + 1})`
       }).catch(() => null)
       if (!sel) continue
-      push(await f.evaluate(DISCOVER, null).catch(() => []), sel)
+      // Frames are their own document: a scope selector belongs to the host page only.
+      if (!cfg.only) push(await f.evaluate(discoverExpr(null)).catch(() => []), sel)
     } catch {}
   }
   return found
@@ -95,22 +96,26 @@ export async function crawl(session, cfg) {
   const prepareAndDiscover = async (announce) => {
     const consent = await dismissConsent(page)
     await settle(page, { timeoutMs: cfg.settleMs })
-    const grew = await scrollThrough(page)
 
-    // Discover before and after opening hover menus, so items that only exist while the
-    // pointer is over their trigger are marked as needing that hover to be reachable.
-    const base = await discoverAll(page, cfg)
-    const baseKeys = new Set(base.map(e => `${e.frameSel || ''}|${e.key}`))
+    // Discover in three passes and record what each control needs to exist at all. Returning
+    // to the base state destroys lazy content and closes menus, so a control found only after
+    // scrolling or hovering must carry that requirement or it is unreachable on revisit.
+    const key = (e) => `${e.frameSel || ''}|${e.key}`
+    const atRest = await discoverAll(page, cfg)
+    const restKeys = new Set(atRest.map(key))
+
+    const grew = await scrollThrough(page)
+    const afterScroll = await discoverAll(page, cfg)
+    const scrollOnly = afterScroll.filter(e => !restKeys.has(key(e))).map(e => ({ ...e, needsScroll: true }))
+    const scrollKeys = new Set([...restKeys, ...scrollOnly.map(key)])
+
     const revealed = await hoverReveal(page)
     await settle(page, { timeoutMs: 2500 })
     const afterHover = await discoverAll(page, cfg)
-    const elements = [
-      ...base,
-      ...afterHover
-        .filter(e => !baseKeys.has(`${e.frameSel || ''}|${e.key}`))
-        .map(e => ({ ...e, needsHover: true }))
-    ]
-    if (announce) logPrep({ consent, grew, revealed })
+    const hoverOnly = afterHover.filter(e => !scrollKeys.has(key(e))).map(e => ({ ...e, needsHover: true, needsScroll: grew }))
+
+    const elements = [...atRest, ...scrollOnly, ...hoverOnly]
+    if (announce) logPrep({ consent, grew, revealed, scrollOnly: scrollOnly.length })
     return { elements, consent, hoverTriggers: revealed.names }
   }
 
