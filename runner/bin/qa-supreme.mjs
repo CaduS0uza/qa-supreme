@@ -36,6 +36,8 @@ Options
   --video                record the whole run to video          (on in watch mode)
   --lang <en|pt>         language of the live transcript        (or QA_LANG=pt)
   --quiet                no per-click transcript
+  --only <css>           explore only this region: one tab, one panel, one screen
+  --settle <ms>          how long to wait for the page to stop changing   (default 8000)
   --maxPages <n>         states to explore                   (default ${DEFAULTS.maxPages})
   --maxDepth <n>         crawl depth                         (default ${DEFAULTS.maxDepth})
   --maxClicksPerPage <n> click budget per state              (default ${DEFAULTS.maxClicksPerPage})
@@ -92,6 +94,8 @@ const cliArgs = {
   watch: cmd === 'watch' || flags.watch === true ? true : undefined,
   narrate: flags.quiet === true ? false : undefined,
   lang: flag('lang'),
+  only: flag('only'),
+  settleMs: flag('settle'),
   slowMo: flags.slowMo,
   maxPages: flags.maxPages,
   maxDepth: flags.maxDepth,

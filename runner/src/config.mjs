@@ -17,7 +17,10 @@ export const DEFAULTS = {
   maxClicksPerPage: 60,
   maxTotalClicks: 800,
   timeoutMs: 15000,
-  clickTimeoutMs: 4000,   // a control that does not accept a click in 4s is a finding, not a wait
+  clickTimeoutMs: 4000,
+  settleMs: 8000,        // how long to wait for the page to stop changing before judging it
+  rescanPasses: 3,       // sweep again after content that arrived late
+  only: null,            // CSS selector: explore just this region (one tab, one panel, one screen)   // a control that does not accept a click in 4s is a finding, not a wait
   viewport: { width: 1440, height: 900 },
   sameOriginOnly: true,
   hud: true,
