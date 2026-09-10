@@ -1,6 +1,6 @@
 {
   "name": "qa-supreme",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Risk-first, evidence-enforced QA pipeline: 17 testing skills plus an orchestrator agent that refuses to call anything green without proof.",
   "author": {
     "name": "Carlos Eduardo",

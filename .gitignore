@@ -6,3 +6,6 @@ test-results/
 .qa-supreme/
 coverage/
 .qa-out/
+.qa-hard/
+.qa-auth/
+.qa-unauth/

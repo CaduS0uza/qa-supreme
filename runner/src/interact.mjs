@@ -121,10 +121,14 @@ export async function hoverReveal(page) {
     for (const i of triggers) {
       const t = page.locator(`[data-qa-hover="${i}"]`).first()
       if (!(await t.isVisible({ timeout: 500 }).catch(() => false))) continue
-      const before = await page.evaluate(() => document.querySelectorAll('a[href],button,[role=button]').length).catch(() => 0)
+      // Count what is VISIBLE, not what is in the DOM: a CSS hover menu keeps its items in
+      // the tree with display:none, so counting nodes never sees the menu open.
+      const countVisible = () => page.evaluate(() => [...document.querySelectorAll('a[href],button,[role=button],[role=menuitem]')]
+        .filter(el => { const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1 }).length).catch(() => 0)
+      const before = await countVisible()
       await t.hover({ timeout: 1500 }).catch(() => {})
       await page.waitForTimeout(200)
-      const after = await page.evaluate(() => document.querySelectorAll('a[href],button,[role=button]').length).catch(() => 0)
+      const after = await countVisible()
       revealed.push(i)
       // Remember the triggers that actually opened something, so clicking them later is
       // judged as "reveals a menu" rather than "does nothing".

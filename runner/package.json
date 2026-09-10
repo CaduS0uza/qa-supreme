@@ -1,6 +1,6 @@
 {
   "name": "qa-supreme",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Autonomous QA pipeline: crawls every clickable element of any web app, counts every click on screen, and proves quality in staged, evidenced reports.",
   "type": "module",
   "bin": {

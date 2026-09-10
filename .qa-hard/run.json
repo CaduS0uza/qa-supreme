@@ -1,8 +1,8 @@
 {
   "url": "http://localhost:8099/hard.html",
-  "startedAt": "2026-09-10T14:09:51.630Z",
-  "finishedAt": "2026-09-10T14:10:26.430Z",
-  "durationMs": 34800,
+  "startedAt": "2026-09-10T14:21:18.717Z",
+  "finishedAt": "2026-09-10T14:21:54.730Z",
+  "durationMs": 36013,
   "aborted": null,
   "stages": {
     "crawl": {
@@ -16,7 +16,7 @@
               "url": "http://localhost:8099/hard.html",
               "title": "Hard cases — QA Supreme fixture",
               "depth": 0,
-              "interactive": 11
+              "interactive": 13
             }
           ],
           "edges": [
@@ -71,7 +71,7 @@
             {
               "from": "n1",
               "via": "Profile",
-              "to": "state:-910983142|-1306194604",
+              "to": "state:1675402272|-1306194604",
               "kind": "in-place-change"
             }
           ]
@@ -214,7 +214,7 @@
               "failed4xx": 0,
               "requests": 4
             },
-            "covered": "covered by <div#overlay>"
+            "covered": "covered by <header> over <div#overlay>"
           },
           {
             "n": 9,
@@ -275,7 +275,7 @@
             "name": "Profile",
             "selector": "#m-profile",
             "outcome": "in-place-change",
-            "opened": "state:-910983142|-1306194604",
+            "opened": "state:1675402272|-1306194604",
             "verdict": "works",
             "effect": {
               "threw": 0,
@@ -310,7 +310,7 @@
             "node": "n1",
             "element": "Covered button",
             "message": "locator.click: Timeout 4000ms exceeded.",
-            "covered": "covered by <div#overlay>"
+            "covered": "covered by <header> over <div#overlay>"
           }
         ],
         "totalClicks": 13,
